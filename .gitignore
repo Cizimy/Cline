@@ -1,0 +1,23 @@
+# Ignore node_modules directories
+**/node_modules/
+
+# Ignore build artifacts
+**/dist/
+**/build/
+
+# Ignore environment-specific files
+.env
+.env.local
+.env.development
+.env.production
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore MCP/github-server/.git directory only
+MCP/github-server/.git/
