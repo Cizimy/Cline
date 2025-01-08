@@ -4,20 +4,25 @@
   "private": true,
   "description": "Custom extensions for Cline",
   "type": "module",
-  "workspaces": [
-    "extensions/mcp/*"
-  ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "watch": "npm run watch --workspaces",
+    "build": "tsc",
+    "watch": "tsc -w",
     "update:submodules": "git submodule update --remote",
     "update:deps": "npm outdated && npm update",
     "postinstall": "git submodule update --init --recursive",
     "check:updates": "node scripts/check-updates.js",
     "preupdate": "npm run check:updates",
-    "update": "npm run update:submodules && npm run update:deps"
+    "update": "npm run update:submodules && npm run update:deps",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
-  "dependencies": {
-    "@modelcontextprotocol/servers": "0.6.2"
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@jest/types": "^29.6.3",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
   }
 }
