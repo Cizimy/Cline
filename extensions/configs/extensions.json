@@ -1,0 +1,24 @@
+{
+  "mcp": {
+    "servers": {
+      "github": {
+        "enabled": true,
+        "command": "node",
+        "args": ["C:/Users/Kenichi/Documents/Cline/MCP/github-server/src/github/dist/index.js"],
+        "env": {}
+      }
+    }
+  },
+  "prompts": {
+    "customInstructions": {
+      "enabled": true,
+      "path": "../prompts/custom-instructions.md"
+    }
+  },
+  "settings": {
+    "core": {
+      "updateStrategy": "submodule",
+      "version": "latest"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "cline-custom",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Custom extensions for Cline",
+  "type": "module",
+  "workspaces": [
+    "extensions/mcp/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "watch": "npm run watch --workspaces"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/servers": "0.6.2"
+  }
+}
