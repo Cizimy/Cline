@@ -1,0 +1,64 @@
+name: Update Check
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # 毎週月曜日の午前0時に実行
+  workflow_dispatch:      # 手動実行も可能
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check for updates
+        id: check
+        run: |
+          if ! npm run check:updates; then
+            echo "Updates available"
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+          else
+            echo "No updates available"
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create Issue
+        if: steps.check.outputs.has_updates == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const updateReport = fs.readFileSync(process.stdout.fd, 'utf8');
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔄 更新が利用可能です',
+              body: `
+              # 更新チェックレポート
+              
+              ${updateReport}
+              
+              ## 更新手順
+              
+              1. 変更をコミットまたはスタッシュしてワークディレクトリをクリーンにする
+              2. \`npm run update\` を実行
+              3. 更新後、\`npm run build\` で動作確認
+              4. テストが成功することを確認
+              
+              更新に問題がある場合は、個別に \`npm run update:submodules\` または \`npm run update:deps\` を実行して更新範囲を制限できます。
+              `,
+              labels: ['dependencies', 'automated']
+            });

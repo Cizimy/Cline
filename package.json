@@ -9,7 +9,13 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "watch": "npm run watch --workspaces"
+    "watch": "npm run watch --workspaces",
+    "update:submodules": "git submodule update --remote",
+    "update:deps": "npm outdated && npm update",
+    "postinstall": "git submodule update --init --recursive",
+    "check:updates": "node scripts/check-updates.js",
+    "preupdate": "npm run check:updates",
+    "update": "npm run update:submodules && npm run update:deps"
   },
   "dependencies": {
     "@modelcontextprotocol/servers": "0.6.2"

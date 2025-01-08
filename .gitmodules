@@ -1,0 +1,4 @@
+[submodule "MCP/github-server"]
+	path = MCP/github-server
+	url = https://github.com/modelcontextprotocol/servers.git
+	branch = main
