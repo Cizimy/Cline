@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.join(__dirname, '..');
 
-function checkGitStatus() {
+export function checkGitStatus() {
   try {
     const status = execSync('git status --porcelain', { cwd: ROOT_DIR }).toString();
     return status.length === 0;
@@ -19,7 +19,7 @@ function checkGitStatus() {
   }
 }
 
-function checkSubmoduleUpdates() {
+export function checkSubmoduleUpdates() {
   try {
     const result = execSync('git submodule status', { cwd: ROOT_DIR }).toString();
     const updates = [];
@@ -40,7 +40,7 @@ function checkSubmoduleUpdates() {
   }
 }
 
-function checkNpmUpdates() {
+export function checkNpmUpdates() {
   try {
     const output = execSync('npm outdated --json', { cwd: ROOT_DIR }).toString();
     const outdated = JSON.parse(output);
@@ -57,7 +57,7 @@ function checkNpmUpdates() {
   }
 }
 
-function generateReport(submoduleUpdates, npmUpdates) {
+export function generateReport(submoduleUpdates, npmUpdates) {
   const report = [];
   
   if (submoduleUpdates.length > 0) {
@@ -85,21 +85,23 @@ function generateReport(submoduleUpdates, npmUpdates) {
   return report.join('\n');
 }
 
-// メイン処理
-console.log('更新チェックを開始...\n');
+// スクリプトが直接実行された場合のみメイン処理を実行
+if (import.meta.url === `file://${process.argv[1]}`) {
+  console.log('更新チェックを開始...\n');
 
-if (!checkGitStatus()) {
-  console.error('警告: コミットされていない変更があります。先に変更を処理してください。');
-  process.exit(1);
-}
+  if (!checkGitStatus()) {
+    console.error('警告: コミットされていない変更があります。先に変更を処理してください。');
+    process.exit(1);
+  }
 
-const submoduleUpdates = checkSubmoduleUpdates();
-const npmUpdates = checkNpmUpdates();
+  const submoduleUpdates = checkSubmoduleUpdates();
+  const npmUpdates = checkNpmUpdates();
 
-const report = generateReport(submoduleUpdates, npmUpdates);
-console.log(report);
+  const report = generateReport(submoduleUpdates, npmUpdates);
+  console.log(report);
 
-// 更新が必要な場合は終了コード1を返す
-if (submoduleUpdates.length > 0 || npmUpdates.length > 0) {
-  process.exit(1);
+  // 更新が必要な場合は終了コード1を返す
+  if (submoduleUpdates.length > 0 || npmUpdates.length > 0) {
+    process.exit(1);
+  }
 }
