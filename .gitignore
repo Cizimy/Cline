@@ -28,6 +28,7 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+*.stackdump
 
 # Core directory (managed as submodule)
 /core/*
