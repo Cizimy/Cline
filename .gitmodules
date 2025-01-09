@@ -14,3 +14,7 @@
 	path = MCP/brave-search-server
 	url = https://github.com/modelcontextprotocol/servers.git
 	branch = main
+[submodule "MCP/time-server"]
+	path = MCP/time-server
+	url = https://github.com/modelcontextprotocol/servers.git
+	branch = main

@@ -104,6 +104,19 @@
           "branch": "main",
           "type": "submodule"
         }
+      },
+      "time": {
+        "enabled": false,
+        "command": "node",
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/time-server/src/time/dist/index.js"
+        ],
+        "env": {},
+        "repository": {
+          "url": "https://github.com/modelcontextprotocol/servers.git",
+          "branch": "main",
+          "type": "submodule"
+        }
       }
     },
     "management": {
