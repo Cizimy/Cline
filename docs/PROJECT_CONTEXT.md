@@ -23,6 +23,7 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 - gitサブモジュールとして外部MCPサーバーを参照
   - github-server: GitHub操作の自動化
+  - memory: メモリベースのデータ永続化
   - security-scanner: セキュリティ診断
   - test-runner: テスト実行管理
   - docs-manager: ドキュメント管理
