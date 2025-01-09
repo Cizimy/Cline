@@ -133,9 +133,8 @@ Cline/
 外部MCPサーバーは`MCP/`ディレクトリ配下でサブモジュールとして管理されています。すべてのMCPサーバーは外部リポジトリとして参照する必要があります。現在以下のサーバーが統合されています：
 
 - github-server: GitHub操作用MCPサーバー（from modelcontextprotocol/servers）
-- security-scanner-mcp: セキュリティスキャン用MCPサーバー（from Cizimy/security-scanner-mcp）
-- test-runner-mcp: テスト実行管理用MCPサーバー（from Cizimy/test-runner-mcp）
-- docs-manager-mcp: ドキュメント管理用MCPサーバー（from Cizimy/docs-manager-mcp）
+
+その他のMCPサーバー（docs-manager, security-scanner, test-runner）については、公式リポジトリから適切なものを選定し、順次追加予定です。
 
 ### サーバーの設定と管理
 
