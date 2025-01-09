@@ -4,10 +4,7 @@ import { ExtensionError } from '../types';
 describe('Utils', () => {
   describe('safeAsync', () => {
     it('正常な Promise を処理できること', async () => {
-      const result = await safeAsync(
-        Promise.resolve('test'),
-        'TEST_ERROR'
-      );
+      const result = await safeAsync(Promise.resolve('test'), 'TEST_ERROR');
       expect(result).toBe('test');
     });
 
@@ -23,18 +20,18 @@ describe('Utils', () => {
       const base = {
         name: 'test',
         value: 1,
-        enabled: true
+        enabled: true,
       };
 
       const override = {
-        value: 2
+        value: 2,
       };
 
       const result = deepMerge(base, override);
       expect(result).toEqual({
         name: 'test',
         value: 2,
-        enabled: true
+        enabled: true,
       });
     });
 
@@ -46,10 +43,10 @@ describe('Utils', () => {
             enabled: false,
             debug: true,
             values: {
-              timeout: 1000
-            }
-          }
-        }
+              timeout: 1000,
+            },
+          },
+        },
       };
 
       const override = {
@@ -57,10 +54,10 @@ describe('Utils', () => {
           options: {
             enabled: true,
             values: {
-              timeout: 2000
-            }
-          }
-        }
+              timeout: 2000,
+            },
+          },
+        },
       };
 
       const result = deepMerge(base, override);
@@ -74,15 +71,15 @@ describe('Utils', () => {
       const base = {
         items: [1, 2, 3],
         config: {
-          tags: ['a', 'b']
-        }
+          tags: ['a', 'b'],
+        },
       };
 
       const override = {
         items: [4, 5],
         config: {
-          tags: ['c']
-        }
+          tags: ['c'],
+        },
       };
 
       const result = deepMerge(base, override);
@@ -132,10 +129,10 @@ describe('Utils', () => {
     it('成功する関数は1回で完了すること', async () => {
       const fn = jest.fn().mockResolvedValue('success');
       const promise = retry(fn, { maxAttempts: 3 });
-      
+
       jest.runAllTimers();
       const result = await promise;
-      
+
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(1);
     });
@@ -146,10 +143,10 @@ describe('Utils', () => {
         .mockRejectedValueOnce(new Error('fail'))
         .mockResolvedValue('success');
 
-      const promise = retry(fn, { 
+      const promise = retry(fn, {
         maxAttempts: 2,
         delay: 100,
-        backoff: 1
+        backoff: 1,
       });
 
       // 最初の試行（失敗）
@@ -166,11 +163,11 @@ describe('Utils', () => {
 
     it('すべての試行が失敗した場合、エラーを投げること', async () => {
       const fn = jest.fn().mockRejectedValue(new Error('always fail'));
-      
-      const promise = retry(fn, { 
-        maxAttempts: 2, 
+
+      const promise = retry(fn, {
+        maxAttempts: 2,
         delay: 100,
-        backoff: 1
+        backoff: 1,
       });
 
       // 最初の試行

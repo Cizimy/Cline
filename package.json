@@ -13,16 +13,64 @@
     "check:updates": "node scripts/check-updates.js",
     "preupdate": "npm run check:updates",
     "update": "npm run update:submodules && npm run update:deps",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:coverage": "npm test -- --coverage",
+    "test:watch": "npm test -- --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "run-p lint format:check test",
+    "fix": "run-s lint:fix format",
+    "prepare": "husky install",
+    "security:audit": "npm audit && npm audit fix",
+    "validate": "run-p lint format:check test:coverage security:audit",
+    "clean": "npm run clean:dist && npm run clean:coverage",
+    "clean:dist": "rm -rf dist",
+    "clean:coverage": "rm -rf coverage .nyc_output",
+    "prebuild": "npm run clean",
+    "build:watch": "npm run build -- --watch",
+    "dev": "run-p build:watch test:watch",
+    "semantic-release": "semantic-release",
+    "ci": "run-s clean validate build"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write",
+      "jest --bail --findRelatedTests"
+    ],
+    "*.{json,yml,yaml,md}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@eslint/js": "^8.56.0",
     "@jest/globals": "^29.7.0",
     "@jest/types": "^29.6.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
     "@types/jest": "^29.5.11",
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.17.12",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
     "cross-env": "^7.0.3",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.0",
     "jest": "^29.7.0",
+    "lint-staged": "^15.2.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.4.2",
+    "semantic-release": "^23.0.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   }
 }

@@ -2,27 +2,27 @@ name: Update Check
 
 on:
   schedule:
-    - cron: '0 0 * * 1'  # 毎週月曜日の午前0時に実行
-  workflow_dispatch:      # 手動実行も可能
+    - cron: "0 0 * * 1" # 毎週月曜日の午前0時に実行
+  workflow_dispatch: # 手動実行も可能
 
 jobs:
   check-updates:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-          
+          node-version: "18"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Check for updates
         id: check
         run: |
@@ -33,7 +33,7 @@ jobs:
             echo "No updates available"
             echo "has_updates=false" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Create Issue
         if: steps.check.outputs.has_updates == 'true'
         uses: actions/github-script@v6
@@ -41,7 +41,7 @@ jobs:
           script: |
             const fs = require('fs');
             const updateReport = fs.readFileSync(process.stdout.fd, 'utf8');
-            
+
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -17,20 +17,20 @@ export const CORE_VERSION = '1.0.0';
 // 基本設定
 export const DEFAULT_CONFIG = {
   mcp: {
-    servers: {}
+    servers: {},
   },
   prompts: {
     customInstructions: {
       enabled: true,
-      path: '../prompts/custom-instructions.md'
-    }
+      path: '../prompts/custom-instructions.md',
+    },
   },
   settings: {
     core: {
       updateStrategy: 'manual' as const,
-      version: CORE_VERSION
-    }
-  }
+      version: CORE_VERSION,
+    },
+  },
 };
 
 // 初期化関数
@@ -61,11 +61,11 @@ export abstract class BaseMCPServer {
 
   abstract initialize(): Promise<void>;
   abstract shutdown(): Promise<void>;
-  
+
   protected logInfo(message: string): void {
     console.warn(`[${this.name}] ${message}`);
   }
-  
+
   protected logError(message: string, error?: unknown): void {
     console.error(`[${this.name}] ${message}`, error);
   }

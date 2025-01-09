@@ -1,34 +1,46 @@
 import { jest } from '@jest/globals';
 
-// グローバルなモックの設定
-const mockExecSync = jest.fn();
-const mockReadFileSync = jest.fn();
-const mockJoin = jest.fn((...args) => args.join('/'));
-const mockDirname = jest.fn(() => '/mock/dir');
-const mockFileURLToPath = jest.fn(() => '/mock/path');
+// Mock process.stdout.write
+const mockStdout = jest.fn().mockReturnValue(true);
+const originalStdoutWrite = process.stdout.write;
+process.stdout.write = function (text) {
+  mockStdout(text);
+  return true;
+};
 
-jest.mock('child_process', () => ({
-  execSync: mockExecSync
-}));
+// Mock process.stderr.write
+const mockStderr = jest.fn().mockReturnValue(true);
+const originalStderrWrite = process.stderr.write;
+process.stderr.write = function (text) {
+  mockStderr(text);
+  return true;
+};
 
-jest.mock('fs', () => ({
-  readFileSync: mockReadFileSync
-}));
+// Mock console.error
+const mockConsoleError = jest.fn();
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  mockConsoleError(...args);
+};
 
-jest.mock('path', () => ({
-  join: mockJoin,
-  dirname: mockDirname
-}));
+// Reset all mocks before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockStdout.mockClear();
+  mockStderr.mockClear();
+  mockConsoleError.mockClear();
+});
 
-jest.mock('url', () => ({
-  fileURLToPath: mockFileURLToPath
-}));
+// Restore original functions after all tests
+afterAll(() => {
+  console.error = originalConsoleError;
+  process.stdout.write = originalStdoutWrite;
+  process.stderr.write = originalStderrWrite;
+});
 
-// モックをエクスポート
-export {
-  mockExecSync,
-  mockReadFileSync,
-  mockJoin,
-  mockDirname,
-  mockFileURLToPath
+// Make mocks available globally
+global.__mocks__ = {
+  stdout: mockStdout,
+  stderr: mockStderr,
+  consoleError: mockConsoleError,
 };
