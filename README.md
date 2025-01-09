@@ -120,6 +120,7 @@ Cline/
 │   └── integration/   # 統合テスト（予定）
 ├── extensions/         # 拡張機能ディレクトリ
 │   ├── core/          # コア拡張機能
+│   │   └── environment-checker/  # 環境互換性チェッカー
 │   ├── mcp/           # MCPサーバー
 │   ├── configs/       # 設定ファイル
 │   └── prompts/       # カスタムプロンプト
@@ -129,13 +130,42 @@ Cline/
 
 ## MCPサーバー
 
-外部MCPサーバーは`MCP/`ディレクトリ配下でサブモジュールとして管理されています。現在以下のサーバーが統合されています：
+外部MCPサーバーは`MCP/`ディレクトリ配下でサブモジュールとして管理されています。すべてのMCPサーバーは外部リポジトリとして参照する必要があります。現在以下のサーバーが統合されています：
 
 - github-server: GitHub操作用MCPサーバー（from modelcontextprotocol/servers）
+- security-scanner-mcp: セキュリティスキャン用MCPサーバー（from Cizimy/security-scanner-mcp）
+- test-runner-mcp: テスト実行管理用MCPサーバー（from Cizimy/test-runner-mcp）
+- docs-manager-mcp: ドキュメント管理用MCPサーバー（from Cizimy/docs-manager-mcp）
 
-### サーバーの設定
+### サーバーの設定と管理
 
-サーバーの設定は`extensions/configs/extensions.json`で管理されています。各サーバーの有効/無効の切り替えや環境変数の設定が可能です。
+サーバーの設定は`extensions/configs/extensions.json`で管理されています：
+
+- リポジトリ情報の明示的な指定
+  - 外部リポジトリURLの設定（必須）
+  - ブランチの指定
+  - 更新戦略の設定
+- サーバーの有効/無効の切り替え
+- 環境変数の設定
+- 自動同期の設定
+
+### サーバー追加のガイドライン
+
+新しいMCPサーバーを追加する際は、以下の手順に従ってください：
+
+1. 環境チェッカーによる互換性確認
+   - システム要件の検証
+   - 必要な環境変数の確認
+   - ランタイムの互換性チェック
+
+2. .gitmodulesでの設定
+   - 外部リポジトリURLの指定（必須）
+   - 適切なブランチの設定
+
+3. extensions.jsonでの設定
+   - リポジトリ情報の明示的な指定
+   - 更新戦略の設定
+   - 必要な環境変数の定義
 
 ## バージョン管理方針
 

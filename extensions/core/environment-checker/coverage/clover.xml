@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1736407031967" clover="3.2.0">
+  <project timestamp="1736407031967" name="All files">
+    <metrics statements="38" coveredstatements="33" conditionals="11" coveredconditionals="9" methods="13" coveredmethods="12" elements="62" coveredelements="54" complexity="0" loc="38" ncloc="38" packages="1" files="1" classes="1"/>
+    <file name="checker.ts" path="C:\Users\Kenichi\Documents\Cline\extensions\core\environment-checker\src\checker.ts">
+      <metrics statements="38" coveredstatements="33" conditionals="11" coveredconditionals="9" methods="13" coveredmethods="12"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="2" count="1" type="stmt"/>
+      <line num="10" count="1" type="stmt"/>
+      <line num="12" count="1" type="stmt"/>
+      <line num="13" count="4" type="stmt"/>
+      <line num="28" count="4" type="stmt"/>
+      <line num="35" count="8" type="stmt"/>
+      <line num="36" count="8" type="stmt"/>
+      <line num="37" count="8" type="stmt"/>
+      <line num="38" count="8" type="stmt"/>
+      <line num="39" count="8" type="stmt"/>
+      <line num="41" count="0" type="stmt"/>
+      <line num="49" count="8" type="stmt"/>
+      <line num="50" count="8" type="stmt"/>
+      <line num="52" count="8" type="stmt"/>
+      <line num="53" count="12" type="cond" truecount="1" falsecount="1"/>
+      <line num="54" count="12" type="cond" truecount="2" falsecount="0"/>
+      <line num="55" count="12" type="cond" truecount="1" falsecount="0"/>
+      <line num="57" count="0" type="stmt"/>
+      <line num="68" count="4" type="stmt"/>
+      <line num="69" count="4" type="stmt"/>
+      <line num="70" count="4" type="stmt"/>
+      <line num="72" count="0" type="stmt"/>
+      <line num="79" count="4" type="stmt"/>
+      <line num="80" count="4" type="cond" truecount="1" falsecount="0"/>
+      <line num="81" count="4" type="stmt"/>
+      <line num="87" count="0" type="stmt"/>
+      <line num="98" count="4" type="stmt"/>
+      <line num="99" count="8" type="stmt"/>
+      <line num="108" count="4" type="stmt"/>
+      <line num="109" count="8" type="stmt"/>
+      <line num="117" count="4" type="stmt"/>
+      <line num="118" count="4" type="stmt"/>
+      <line num="125" count="4" type="stmt"/>
+      <line num="128" count="8" type="cond" truecount="2" falsecount="1"/>
+      <line num="129" count="4" type="stmt"/>
+      <line num="130" count="0" type="stmt"/>
+      <line num="132" count="4" type="stmt"/>
+    </file>
+  </project>
+</coverage>
