@@ -8,6 +8,30 @@
           "C:/Users/Kenichi/Documents/Cline/MCP/github-server/src/github/dist/index.js"
         ],
         "env": {}
+      },
+      "security-scanner": {
+        "enabled": true,
+        "command": "node",
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/security-scanner-mcp/build/index.js"
+        ],
+        "env": {}
+      },
+      "test-runner": {
+        "enabled": true,
+        "command": "node",
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/test-runner-mcp/build/index.js"
+        ],
+        "env": {}
+      },
+      "docs-manager": {
+        "enabled": true,
+        "command": "node",
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/docs-manager-mcp/build/index.js"
+        ],
+        "env": {}
       }
     }
   },

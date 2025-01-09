@@ -2,3 +2,18 @@
 	path = MCP/github-server
 	url = https://github.com/modelcontextprotocol/servers.git
 	branch = main
+
+[submodule "MCP/security-scanner-mcp"]
+	path = MCP/security-scanner-mcp
+	url = ./MCP/security-scanner-mcp
+	branch = master
+
+[submodule "MCP/test-runner-mcp"]
+	path = MCP/test-runner-mcp
+	url = ./MCP/test-runner-mcp
+	branch = master
+
+[submodule "MCP/docs-manager-mcp"]
+	path = MCP/docs-manager-mcp
+	url = ./MCP/docs-manager-mcp
+	branch = master
