@@ -78,6 +78,19 @@
           "branch": "main",
           "type": "submodule"
         }
+      },
+      "google-maps": {
+        "enabled": false,
+        "command": "node",
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/google-maps-server/src/google-maps/dist/index.js"
+        ],
+        "env": {},
+        "repository": {
+          "url": "https://github.com/modelcontextprotocol/servers.git",
+          "branch": "main",
+          "type": "submodule"
+        }
       }
     },
     "management": {
