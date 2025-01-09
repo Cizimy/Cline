@@ -2,35 +2,48 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [20.x]
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        registry-url: 'https://npm.pkg.github.com'
-        scope: '@cizimy'
-    
-    - name: Install dependencies
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm ci
-    
-    - name: Run tests
-      run: npm test
-    
-    - name: Upload coverage reports
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: coverage/
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 9
+
+      - name: Check test coverage
+        run: |
+          COVERAGE=$(node -e "const fs=require('fs');const coverage=JSON.parse(fs.readFileSync('coverage/coverage-final.json'));const total=Object.values(coverage).reduce((acc,file)=>acc+file.statements.covered,0);const all=Object.values(coverage).reduce((acc,file)=>acc+file.statements.total,0);console.log((total/all*100).toFixed(2));")
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "Test coverage is below 80%: $COVERAGE%"
+            exit 1
+          fi

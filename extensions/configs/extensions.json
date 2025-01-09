@@ -4,7 +4,9 @@
       "github": {
         "enabled": true,
         "command": "node",
-        "args": ["C:/Users/Kenichi/Documents/Cline/MCP/github-server/src/github/dist/index.js"],
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/github-server/src/github/dist/index.js"
+        ],
         "env": {}
       }
     }

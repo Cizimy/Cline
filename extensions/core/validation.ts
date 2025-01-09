@@ -1,112 +1,89 @@
-import { ExtensionError } from './types';
-import { z } from 'zod';
-
-/**
- * 設定のバリデーション
- */
-export function validateConfig<T>(
-  config: unknown,
-  schema: z.ZodType<T>
-): T {
-  try {
-    return schema.parse(config);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new ExtensionError(
-        '設定ファイルが無効です',
-        'INVALID_CONFIG',
-        error.errors
-      );
-    }
-    throw error;
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+    Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
 
-/**
- * 環境変数の存在チェック
- */
-export function validateEnvironment(required: string[]): void {
-  const missing = required.filter(key => !process.env[key]);
-  if (missing.length > 0) {
-    throw new ExtensionError(
-      '必要な環境変数が設定されていません',
-      'MISSING_ENV',
-      missing
+export function validateString(value: unknown, fieldName: string): string {
+  if (typeof value !== 'string') {
+    throw new ValidationError(
+      `${fieldName} must be a string, got ${typeof value}`
     );
   }
+  return value;
 }
 
-/**
- * パスの存在チェック
- */
-export async function validatePaths(paths: string[]): Promise<void> {
-  const fs = await import('fs/promises');
-  
-  for (const path of paths) {
-    try {
-      await fs.access(path);
-    } catch {
-      throw new ExtensionError(
-        `パスが存在しません: ${path}`,
-        'INVALID_PATH'
-      );
-    }
+export function validateNumber(value: unknown, fieldName: string): number {
+  if (typeof value !== 'number' || isNaN(value)) {
+    throw new ValidationError(
+      `${fieldName} must be a number, got ${typeof value}`
+    );
   }
+  return value;
 }
 
-// スキーマの型定義
-export interface MCPServerSchema {
-  enabled: boolean;
-  command: string;
-  args: string[];
-  env: Record<string, string>;
+export function validateBoolean(value: unknown, fieldName: string): boolean {
+  if (typeof value !== 'boolean') {
+    throw new ValidationError(
+      `${fieldName} must be a boolean, got ${typeof value}`
+    );
+  }
+  return value;
 }
 
-export interface ExtensionConfigSchema {
-  mcp: {
-    servers: Record<string, MCPServerSchema>;
-  };
-  prompts: {
-    customInstructions: {
-      enabled: boolean;
-      path: string;
-    };
-  };
-  settings: {
-    core: {
-      updateStrategy: 'submodule' | 'manual';
-      version: string;
-    };
-  };
+export function validateArray<T>(
+  value: unknown,
+  fieldName: string,
+  elementValidator: (element: unknown, index: number) => T
+): T[] {
+  if (!Array.isArray(value)) {
+    throw new ValidationError(
+      `${fieldName} must be an array, got ${typeof value}`
+    );
+  }
+  return value.map((element, index) => elementValidator(element, index));
 }
 
-// 共通のスキーマ定義
-export const commonSchemas: {
-  mcpServer: z.ZodType<MCPServerSchema>;
-  extensionConfig: z.ZodType<ExtensionConfigSchema>;
-} = {
-  mcpServer: z.object({
-    enabled: z.boolean(),
-    command: z.string(),
-    args: z.array(z.string()),
-    env: z.record(z.string())
-  }),
+export function validateObject<T extends object>(
+  value: unknown,
+  fieldName: string,
+  validator: (obj: unknown) => T
+): T {
+  if (typeof value !== 'object' || value === null) {
+    throw new ValidationError(
+      `${fieldName} must be an object, got ${typeof value}`
+    );
+  }
+  return validator(value);
+}
 
-  extensionConfig: z.object({
-    mcp: z.object({
-      servers: z.record(z.lazy(() => commonSchemas.mcpServer))
-    }),
-    prompts: z.object({
-      customInstructions: z.object({
-        enabled: z.boolean(),
-        path: z.string()
-      })
-    }),
-    settings: z.object({
-      core: z.object({
-        updateStrategy: z.enum(['submodule', 'manual']),
-        version: z.string()
-      })
-    })
-  })
-};
+export function validateEnumValue<T extends string>(
+  value: unknown,
+  fieldName: string,
+  enumValues: readonly T[]
+): T {
+  const strValue = validateString(value, fieldName);
+  if (!enumValues.includes(strValue as T)) {
+    throw new ValidationError(
+      `${fieldName} must be one of [${enumValues.join(', ')}], got ${strValue}`
+    );
+  }
+  return strValue as T;
+}
+
+export interface ProcessEnv {
+  [key: string]: string | undefined;
+}
+
+export function validateEnvironmentVariable(
+  name: string,
+  env: ProcessEnv = process.env
+): string {
+  const value = env[name];
+  if (value === undefined) {
+    throw new ValidationError(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}

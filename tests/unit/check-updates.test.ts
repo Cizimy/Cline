@@ -1,235 +1,383 @@
-import { jest, describe, beforeEach, it, expect } from '@jest/globals';
+import { jest, expect } from '@jest/globals';
+import type { UpdateInfo } from '../../scripts/check-updates';
 
-// モックの設定
+// Mock child_process module
 const mockExecSync = jest.fn();
-const mockReadFileSync = jest.fn();
-const mockJoin = jest.fn();
-const mockDirname = jest.fn();
-const mockFileURLToPath = jest.fn();
-
-// モジュールのモックを設定
 jest.unstable_mockModule('child_process', () => ({
-  execSync: mockExecSync
+  execSync: mockExecSync,
 }));
 
-jest.unstable_mockModule('fs', () => ({
-  readFileSync: mockReadFileSync,
-  default: {
-    readFileSync: mockReadFileSync
-  }
-}));
-
-jest.unstable_mockModule('path', () => ({
-  join: mockJoin,
-  dirname: mockDirname,
-  default: {
-    join: mockJoin,
-    dirname: mockDirname
-  }
-}));
-
-jest.unstable_mockModule('url', () => ({
-  fileURLToPath: mockFileURLToPath,
-  default: {
-    fileURLToPath: mockFileURLToPath
-  }
-}));
+// Import after mocking
+const {
+  checkGitStatus,
+  checkSubmoduleUpdates,
+  checkNpmUpdates,
+  generateReport,
+  main,
+  UpdateError,
+} = await import('../../scripts/check-updates.js');
 
 describe('check-updates script', () => {
-  beforeEach(() => {
-    // モックをリセット
-    jest.clearAllMocks();
-    jest.resetModules();
+  describe('UpdateError', () => {
+    it('should create error with valid code', () => {
+      const error = new UpdateError('test error', 1);
+      expect(error).toBeInstanceOf(Error);
+      expect(error).toBeInstanceOf(UpdateError);
+      expect(error.name).toBe('UpdateError');
+      expect(error.message).toBe('test error');
+      expect(error.code).toBe(1);
+    });
 
-    // 基本的なモックの実装
-    mockJoin.mockImplementation((...args) => args.join('/'));
-    mockDirname.mockReturnValue('/mock/dir');
-    mockFileURLToPath.mockReturnValue('/mock/path');
+    it('should throw on invalid code', () => {
+      expect(() => new UpdateError('test error', -1)).toThrow(
+        'UpdateError code must be a non-negative integer'
+      );
+      expect(() => new UpdateError('test error', 1.5)).toThrow(
+        'UpdateError code must be a non-negative integer'
+      );
+    });
+
+    it('should format error message correctly', () => {
+      const error = new UpdateError('test error', 1);
+      expect(error.toString()).toBe('UpdateError: test error (code: 1)');
+    });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockExecSync.mockReset();
   });
 
   describe('checkGitStatus', () => {
-    it('should return true when working directory is clean', async () => {
-      // モックの設定
-      mockExecSync.mockReturnValueOnce(Buffer.from(''));
-
-      // テスト対象の関数をインポート
-      const { checkGitStatus } = await import('../../scripts/check-updates.js');
+    it('should return true when working directory is clean', () => {
+      mockExecSync.mockReturnValue(Buffer.from(''));
       const result = checkGitStatus();
-
-      // 検証
       expect(result).toBe(true);
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'git status --porcelain',
-        expect.objectContaining({ cwd: expect.any(String) })
-      );
+      expect(mockExecSync).toHaveBeenCalledWith('git status --porcelain');
     });
 
-    it('should return false when there are uncommitted changes', async () => {
-      // モックの設定
-      mockExecSync.mockReturnValueOnce(Buffer.from(' M file.txt'));
-
-      // テスト対象の関数をインポート
-      const { checkGitStatus } = await import('../../scripts/check-updates.js');
+    it('should return false when there are uncommitted changes', () => {
+      mockExecSync.mockReturnValue(Buffer.from(' M file.txt'));
       const result = checkGitStatus();
-
-      // 検証
       expect(result).toBe(false);
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'git status --porcelain',
-        expect.objectContaining({ cwd: expect.any(String) })
-      );
+      expect(mockExecSync).toHaveBeenCalledWith('git status --porcelain');
     });
 
-    it('should handle git command errors', async () => {
-      // モックの設定
-      mockExecSync.mockImplementationOnce(() => {
+    it('should throw error on git command failure', () => {
+      mockExecSync.mockImplementation(() => {
         throw new Error('git error');
       });
-
-      // テスト対象の関数をインポート
-      const { checkGitStatus } = await import('../../scripts/check-updates.js');
-      const result = checkGitStatus();
-
-      // 検証
-      expect(result).toBe(false);
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'git status --porcelain',
-        expect.objectContaining({ cwd: expect.any(String) })
-      );
+      expect(() => checkGitStatus()).toThrow('git error');
+      expect(mockExecSync).toHaveBeenCalledWith('git status --porcelain');
     });
   });
 
   describe('checkSubmoduleUpdates', () => {
-    it('should detect submodule updates', async () => {
-      // モックの設定
-      mockExecSync.mockReturnValueOnce(
-        Buffer.from('+abcdef1234 submodule1\n+fedcba4321 submodule2')
+    it('should detect submodule updates', () => {
+      mockExecSync.mockReturnValue(
+        Buffer.from(
+          "Entering 'submodule1'\n123abc Some commit message\nEntering 'submodule2'\n456def Another commit"
+        )
       );
-
-      // テスト対象の関数をインポート
-      const { checkSubmoduleUpdates } = await import('../../scripts/check-updates.js');
       const updates = checkSubmoduleUpdates();
-
-      // 検証
-      expect(updates).toHaveLength(2);
-      expect(updates).toContain('submodule1');
-      expect(updates).toContain('submodule2');
+      expect(updates).toEqual([
+        {
+          type: 'submodule',
+          name: 'submodule1',
+          currentVersion: 'current',
+          availableVersion: 'latest',
+        },
+        {
+          type: 'submodule',
+          name: 'submodule2',
+          currentVersion: 'current',
+          availableVersion: 'latest',
+        },
+      ]);
       expect(mockExecSync).toHaveBeenCalledWith(
-        'git submodule status',
-        expect.objectContaining({ cwd: expect.any(String) })
+        'git submodule foreach git log --oneline HEAD..origin/HEAD'
       );
     });
 
-    it('should handle no submodule updates', async () => {
-      // モックの設定
-      mockExecSync.mockReturnValueOnce(
-        Buffer.from(' abcdef1234 submodule1\n abcdef1234 submodule2')
-      );
-
-      // テスト対象の関数をインポート
-      const { checkSubmoduleUpdates } = await import('../../scripts/check-updates.js');
+    it('should handle no submodule updates', () => {
+      mockExecSync.mockReturnValue(Buffer.from(''));
       const updates = checkSubmoduleUpdates();
-
-      // 検証
-      expect(updates).toHaveLength(0);
+      expect(updates).toEqual([]);
       expect(mockExecSync).toHaveBeenCalledWith(
-        'git submodule status',
-        expect.objectContaining({ cwd: expect.any(String) })
+        'git submodule foreach git log --oneline HEAD..origin/HEAD'
+      );
+    });
+
+    it('should handle submodule command errors', () => {
+      mockExecSync.mockImplementation(() => {
+        throw new Error('submodule error');
+      });
+      const updates = checkSubmoduleUpdates();
+      expect(updates).toEqual([]);
+      expect(mockExecSync).toHaveBeenCalledWith(
+        'git submodule foreach git log --oneline HEAD..origin/HEAD'
+      );
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'Submodule check failed:',
+        'submodule error'
       );
     });
   });
 
   describe('checkNpmUpdates', () => {
-    it('should detect npm updates', async () => {
-      // モックの設定
-      mockExecSync.mockReturnValueOnce(
-        Buffer.from(JSON.stringify({
-          'package1': {
-            current: '1.0.0',
-            wanted: '1.1.0',
-            latest: '2.0.0'
-          }
-        }))
+    it('should detect npm updates', () => {
+      mockExecSync.mockReturnValue(
+        Buffer.from(
+          JSON.stringify({
+            package1: {
+              current: '1.0.0',
+              latest: '2.0.0',
+            },
+            package2: {
+              current: '3.0.0',
+              latest: '3.1.0',
+            },
+          })
+        )
       );
-
-      // テスト対象の関数をインポート
-      const { checkNpmUpdates } = await import('../../scripts/check-updates.js');
       const updates = checkNpmUpdates();
-
-      // 検証
-      expect(updates).toHaveLength(1);
-      expect(updates).toContain('package1');
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'npm outdated --json',
-        expect.objectContaining({ cwd: expect.any(String) })
-      );
+      expect(updates).toEqual([
+        {
+          type: 'npm',
+          name: 'package1',
+          currentVersion: '1.0.0',
+          availableVersion: '2.0.0',
+        },
+        {
+          type: 'npm',
+          name: 'package2',
+          currentVersion: '3.0.0',
+          availableVersion: '3.1.0',
+        },
+      ]);
+      expect(mockExecSync).toHaveBeenCalledWith('npm outdated --json');
     });
 
-    it('should handle no npm updates', async () => {
-      // モックの設定
-      mockExecSync.mockReturnValueOnce(Buffer.from('{}'));
-
-      // テスト対象の関数をインポート
-      const { checkNpmUpdates } = await import('../../scripts/check-updates.js');
-      const updates = checkNpmUpdates();
-
-      // 検証
-      expect(updates).toHaveLength(0);
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'npm outdated --json',
-        expect.objectContaining({ cwd: expect.any(String) })
-      );
-    });
-
-    it('should handle npm command errors', async () => {
-      // モックの設定
-      mockExecSync.mockImplementationOnce(() => {
-        const error: any = new Error('npm error');
-        error.stdout = Buffer.from('{}');
+    it('should handle no npm updates', () => {
+      mockExecSync.mockImplementation(() => {
+        const error = new Error('No outdated packages');
+        error.message = 'No outdated packages';
         throw error;
       });
-
-      // テスト対象の関数をインポート
-      const { checkNpmUpdates } = await import('../../scripts/check-updates.js');
       const updates = checkNpmUpdates();
+      expect(updates).toEqual([]);
+      expect(mockExecSync).toHaveBeenCalledWith('npm outdated --json');
+    });
 
-      // 検証
-      expect(updates).toHaveLength(0);
-      expect(mockExecSync).toHaveBeenCalledWith(
-        'npm outdated --json',
-        expect.objectContaining({ cwd: expect.any(String) })
+    it('should handle npm command errors with Error instance', () => {
+      mockExecSync.mockImplementation(() => {
+        throw new Error('npm error');
+      });
+      const updates = checkNpmUpdates();
+      expect(updates).toEqual([]);
+      expect(mockExecSync).toHaveBeenCalledWith('npm outdated --json');
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'NPM update check failed:',
+        'npm error'
       );
+    });
+
+    it('should handle npm command errors with non-Error object', () => {
+      mockExecSync.mockImplementation(() => {
+        throw 'npm error string'; // 文字列として投げる
+      });
+      const updates = checkNpmUpdates();
+      expect(updates).toEqual([]);
+      expect(mockExecSync).toHaveBeenCalledWith('npm outdated --json');
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'NPM update check failed:',
+        'npm error string'
+      );
+    });
+
+    it('should handle invalid JSON output', () => {
+      mockExecSync.mockReturnValue(Buffer.from('invalid json'));
+      const updates = checkNpmUpdates();
+      expect(updates).toEqual([]);
+      expect(mockExecSync).toHaveBeenCalledWith('npm outdated --json');
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'NPM update check failed:',
+        expect.stringContaining('Unexpected token')
+      );
+    });
+
+    it('should handle missing version information', () => {
+      mockExecSync.mockReturnValue(
+        Buffer.from(
+          JSON.stringify({
+            package1: {
+              // missing current version
+              latest: '2.0.0',
+            },
+            package2: {
+              current: '1.0.0',
+              // missing latest version
+            },
+          })
+        )
+      );
+      const updates = checkNpmUpdates();
+      expect(updates).toEqual([]);
+      expect(mockExecSync).toHaveBeenCalledWith('npm outdated --json');
     });
   });
 
   describe('generateReport', () => {
-    it('should generate report with updates', async () => {
-      const submoduleUpdates = ['submodule1', 'submodule2'];
-      const npmUpdates = ['package1', 'package2'];
-
-      // テスト対象の関数をインポート
-      const { generateReport } = await import('../../scripts/check-updates.js');
-      const report = generateReport(submoduleUpdates, npmUpdates);
-
-      // 検証
-      expect(report).toContain('サブモジュールの更新が利用可能');
-      expect(report).toContain('submodule1');
-      expect(report).toContain('submodule2');
-      expect(report).toContain('NPMパッケージの更新が利用可能');
-      expect(report).toContain('package1');
-      expect(report).toContain('package2');
+    it('should generate report with updates', () => {
+      const updates: UpdateInfo[] = [
+        {
+          type: 'submodule',
+          name: 'sub1',
+          currentVersion: 'current',
+          availableVersion: 'latest',
+        },
+        {
+          type: 'npm',
+          name: 'pkg1',
+          currentVersion: '1.0.0',
+          availableVersion: '2.0.0',
+        },
+      ];
+      const report = generateReport(updates);
+      expect(report).toContain('# Available Updates');
+      expect(report).toContain('## Submodules');
+      expect(report).toContain('## NPM Packages');
+      expect(report).toContain('sub1: current -> latest');
+      expect(report).toContain('pkg1: 1.0.0 -> 2.0.0');
     });
 
-    it('should generate report with no updates', async () => {
-      const submoduleUpdates: string[] = [];
-      const npmUpdates: string[] = [];
+    it('should generate report with no updates', () => {
+      const report = generateReport([]);
+      expect(report).toBe('No updates available.');
+    });
+  });
 
-      // テスト対象の関数をインポート
-      const { generateReport } = await import('../../scripts/check-updates.js');
-      const report = generateReport(submoduleUpdates, npmUpdates);
+  describe('main', () => {
+    it('should throw UpdateError when working directory is not clean', () => {
+      mockExecSync.mockReturnValueOnce(Buffer.from(' M file.txt')); // git status
 
-      // 検証
-      expect(report).toContain('すべてのコンポーネントが最新です');
+      let thrownError: unknown;
+
+      try {
+        main();
+        expect('No error thrown').toBe('Expected UpdateError to be thrown');
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(UpdateError);
+      if (thrownError instanceof UpdateError) {
+        expect(thrownError.code).toBe(1);
+        expect(thrownError.message).toBe(
+          'Working directory is not clean. Please commit or stash changes first.'
+        );
+      }
+
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'Working directory is not clean. Please commit or stash changes first.'
+      );
+    });
+
+    it('should throw UpdateError when updates are available', () => {
+      // Mock clean git status
+      mockExecSync.mockReturnValueOnce(Buffer.from(''));
+      // Mock submodule updates
+      mockExecSync.mockReturnValueOnce(Buffer.from("Entering 'sub1'\ncommit"));
+      // Mock npm updates
+      mockExecSync.mockReturnValueOnce(
+        Buffer.from(
+          JSON.stringify({
+            package1: {
+              current: '1.0.0',
+              latest: '2.0.0',
+            },
+          })
+        )
+      );
+
+      let thrownError: unknown;
+
+      try {
+        main();
+        expect('No error thrown').toBe('Expected UpdateError to be thrown');
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(UpdateError);
+      if (thrownError instanceof UpdateError) {
+        expect(thrownError.code).toBe(2);
+        expect(thrownError.message).toBe(
+          'Updates available. Run `npm run update` to apply them.'
+        );
+      }
+
+      const report = generateReport([
+        {
+          type: 'submodule',
+          name: 'sub1',
+          currentVersion: 'current',
+          availableVersion: 'latest',
+        },
+        {
+          type: 'npm',
+          name: 'package1',
+          currentVersion: '1.0.0',
+          availableVersion: '2.0.0',
+        },
+      ]);
+      expect(global.__mocks__.stdout).toHaveBeenCalledWith(report);
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'Updates available. Run `npm run update` to apply them.'
+      );
+    });
+
+    it('should handle unexpected errors', () => {
+      mockExecSync.mockImplementationOnce(() => {
+        throw new Error('Unexpected git error');
+      });
+
+      let thrownError: unknown;
+
+      try {
+        main();
+        expect('No error thrown').toBe('Expected UpdateError to be thrown');
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(UpdateError);
+      if (thrownError instanceof UpdateError) {
+        expect(thrownError.code).toBe(99);
+        expect(thrownError.message).toBe(
+          'Unexpected error: Unexpected git error'
+        );
+      }
+
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'Unexpected error: Unexpected git error'
+      );
+    });
+
+    it('should complete successfully when no updates are available', () => {
+      // Mock clean git status
+      mockExecSync.mockReturnValueOnce(Buffer.from(''));
+      // Mock no submodule updates
+      mockExecSync.mockReturnValueOnce(Buffer.from(''));
+      // Mock no npm updates
+      mockExecSync.mockImplementationOnce(() => {
+        throw new Error('No outdated packages');
+      });
+
+      main();
+      expect(global.__mocks__.stdout).toHaveBeenCalledWith(
+        'No updates available.'
+      );
     });
   });
 });

@@ -1,4 +1,9 @@
-import { validateConfig, validateEnvironment, validatePaths, commonSchemas } from '../validation';
+import {
+  validateConfig,
+  validateEnvironment,
+  validatePaths,
+  commonSchemas,
+} from '../validation';
 import { ExtensionError } from '../types';
 import { z } from 'zod';
 
@@ -10,11 +15,13 @@ describe('Validation', () => {
         command: 'node',
         args: ['server.js'],
         env: {
-          PORT: '3000'
-        }
+          PORT: '3000',
+        },
       };
 
-      expect(() => validateConfig(config, commonSchemas.mcpServer)).not.toThrow();
+      expect(() =>
+        validateConfig(config, commonSchemas.mcpServer)
+      ).not.toThrow();
     });
 
     it('拡張機能の設定を検証できること', () => {
@@ -25,25 +32,27 @@ describe('Validation', () => {
               enabled: true,
               command: 'node',
               args: ['server.js'],
-              env: {}
-            }
-          }
+              env: {},
+            },
+          },
         },
         prompts: {
           customInstructions: {
             enabled: true,
-            path: './prompts/custom.md'
-          }
+            path: './prompts/custom.md',
+          },
         },
         settings: {
           core: {
             updateStrategy: 'manual' as const,
-            version: '1.0.0'
-          }
-        }
+            version: '1.0.0',
+          },
+        },
       };
 
-      expect(() => validateConfig(config, commonSchemas.extensionConfig)).not.toThrow();
+      expect(() =>
+        validateConfig(config, commonSchemas.extensionConfig)
+      ).not.toThrow();
     });
 
     it('カスタムスキーマでの検証をサポートすること', () => {
@@ -51,26 +60,28 @@ describe('Validation', () => {
         name: z.string(),
         settings: z.object({
           enabled: z.boolean(),
-          value: z.number().optional()
-        })
+          value: z.number().optional(),
+        }),
       });
 
       const validConfig = {
         name: 'test',
         settings: {
           enabled: true,
-          value: 42
-        }
+          value: 42,
+        },
       };
 
       const invalidConfig = {
         settings: {
-          enabled: 'true'
-        }
+          enabled: 'true',
+        },
       };
 
       expect(() => validateConfig(validConfig, customSchema)).not.toThrow();
-      expect(() => validateConfig(invalidConfig, customSchema)).toThrow(ExtensionError);
+      expect(() => validateConfig(invalidConfig, customSchema)).toThrow(
+        ExtensionError
+      );
     });
   });
 
@@ -89,7 +100,7 @@ describe('Validation', () => {
       process.env.CLINE_HOME = '/path/to/home';
       process.env.CLINE_CONFIG = '/path/to/config';
 
-      expect(() => 
+      expect(() =>
         validateEnvironment(['CLINE_HOME', 'CLINE_CONFIG'])
       ).not.toThrow();
     });
@@ -98,17 +109,19 @@ describe('Validation', () => {
       process.env.CLINE_HOME = '/path/to/home';
       // CLINE_CONFIGは設定しない
 
-      expect(() => 
-        validateEnvironment(['CLINE_HOME', 'CLINE_CONFIG'])
-      ).toThrow(ExtensionError);
+      expect(() => validateEnvironment(['CLINE_HOME', 'CLINE_CONFIG'])).toThrow(
+        ExtensionError
+      );
     });
   });
 
   describe('validatePaths', () => {
-    const fs = jest.requireActual('fs/promises') as typeof import('fs/promises');
-    
+    const fs = jest.requireActual(
+      'fs/promises'
+    ) as typeof import('fs/promises');
+
     beforeEach(() => {
-      jest.spyOn(fs, 'access').mockImplementation((path) => {
+      jest.spyOn(fs, 'access').mockImplementation(path => {
         return new Promise<void>((resolve, reject) => {
           if (path.toString() === '/valid/path') {
             resolve();
@@ -128,7 +141,9 @@ describe('Validation', () => {
     });
 
     it('無効なパスの場合、エラーを投げること', async () => {
-      await expect(validatePaths(['/invalid/path'])).rejects.toThrow(ExtensionError);
+      await expect(validatePaths(['/invalid/path'])).rejects.toThrow(
+        ExtensionError
+      );
     });
 
     it('複数のパスを検証できること', async () => {
