@@ -5,6 +5,7 @@
 [submodule "MCP/google-maps-server"]
 	path = MCP/google-maps-server
 	url = https://github.com/modelcontextprotocol/servers.git
+	branch = main
 [submodule "MCP/memory-server"]
 	path = MCP/memory-server
 	url = https://github.com/modelcontextprotocol/servers.git

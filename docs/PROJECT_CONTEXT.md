@@ -25,9 +25,7 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
   - github-server: GitHub操作の自動化
   - memory: メモリベースのデータ永続化
   - brave-search: Brave Search API連携
-  - security-scanner: セキュリティ診断
-  - test-runner: テスト実行管理
-  - docs-manager: ドキュメント管理
+  - google-maps: Google Maps API連携
 - 本体との疎結合を維持しながら機能を拡張
 - バージョン管理とアップデートを独立して制御
 

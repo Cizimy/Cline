@@ -70,7 +70,7 @@
         "enabled": true,
         "command": "node",
         "args": [
-          "C:/Users/Kenichi/Documents/Cline/MCP/memory-server/dist/index.js"
+          "C:/Users/Kenichi/Documents/Cline/MCP/memory-server/src/memory/dist/index.js"
         ],
         "env": {},
         "repository": {
@@ -96,7 +96,7 @@
         "enabled": true,
         "command": "node",
         "args": [
-          "C:/Users/Kenichi/Documents/Cline/MCP/brave-search-server/dist/index.js"
+          "C:/Users/Kenichi/Documents/Cline/MCP/brave-search-server/src/brave-search/dist/index.js"
         ],
         "env": {},
         "repository": {
