@@ -67,10 +67,10 @@
         }
       },
       "memory": {
-        "enabled": false,
+        "enabled": true,
         "command": "node",
         "args": [
-          "C:/Users/Kenichi/Documents/Cline/MCP/github-server/src/memory/dist/index.js"
+          "C:/Users/Kenichi/Documents/Cline/MCP/memory-server/dist/index.js"
         ],
         "env": {},
         "repository": {
@@ -84,6 +84,19 @@
         "command": "node",
         "args": [
           "C:/Users/Kenichi/Documents/Cline/MCP/google-maps-server/src/google-maps/dist/index.js"
+        ],
+        "env": {},
+        "repository": {
+          "url": "https://github.com/modelcontextprotocol/servers.git",
+          "branch": "main",
+          "type": "submodule"
+        }
+      },
+      "brave-search": {
+        "enabled": true,
+        "command": "node",
+        "args": [
+          "C:/Users/Kenichi/Documents/Cline/MCP/brave-search-server/dist/index.js"
         ],
         "env": {},
         "repository": {

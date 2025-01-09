@@ -5,3 +5,11 @@
 [submodule "MCP/google-maps-server"]
 	path = MCP/google-maps-server
 	url = https://github.com/modelcontextprotocol/servers.git
+[submodule "MCP/memory-server"]
+	path = MCP/memory-server
+	url = https://github.com/modelcontextprotocol/servers.git
+	branch = main
+[submodule "MCP/brave-search-server"]
+	path = MCP/brave-search-server
+	url = https://github.com/modelcontextprotocol/servers.git
+	branch = main

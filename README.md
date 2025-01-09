@@ -132,12 +132,10 @@ Cline/
 
 外部MCPサーバーは`MCP/`ディレクトリ配下でサブモジュールとして管理されています。すべてのMCPサーバーは外部リポジトリとして参照する必要があります。現在以下のサーバーが統合されています：
 
-現在、以下のMCPサーバーが統合されています：
-
 - github-server: GitHub操作用MCPサーバー（from modelcontextprotocol/servers）
 - memory: メモリベースのデータ永続化サーバー（from modelcontextprotocol/servers）
-
-その他のMCPサーバー（docs-manager, security-scanner, test-runner）については、公式リポジトリから適切なものを選定し、順次追加予定です。
+- brave-search: Brave Search API連携サーバー（from modelcontextprotocol/servers）
+- google-maps: Google Maps API連携サーバー（from modelcontextprotocol/servers）
 
 ### サーバーの設定と管理
 
