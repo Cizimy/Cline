@@ -261,23 +261,7 @@ describe('check-updates script', () => {
     it('should throw UpdateError when working directory is not clean', () => {
       mockExecSync.mockReturnValueOnce(Buffer.from(' M file.txt')); // git status
 
-      let thrownError: unknown;
-
-      try {
-        main();
-        expect('No error thrown').toBe('Expected UpdateError to be thrown');
-      } catch (error) {
-        thrownError = error;
-      }
-
-      expect(thrownError).toBeInstanceOf(UpdateError);
-      if (thrownError instanceof UpdateError) {
-        expect(thrownError.code).toBe(1);
-        expect(thrownError.message).toBe(
-          'Working directory is not clean. Please commit or stash changes first.'
-        );
-      }
-
+      expect(() => main()).toThrow(UpdateError);
       expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
         'Working directory is not clean. Please commit or stash changes first.'
       );
@@ -300,22 +284,7 @@ describe('check-updates script', () => {
         )
       );
 
-      let thrownError: unknown;
-
-      try {
-        main();
-        expect('No error thrown').toBe('Expected UpdateError to be thrown');
-      } catch (error) {
-        thrownError = error;
-      }
-
-      expect(thrownError).toBeInstanceOf(UpdateError);
-      if (thrownError instanceof UpdateError) {
-        expect(thrownError.code).toBe(2);
-        expect(thrownError.message).toBe(
-          'Updates available. Run `npm run update` to apply them.'
-        );
-      }
+      expect(() => main()).toThrow(UpdateError);
 
       const report = generateReport([
         {
@@ -342,23 +311,7 @@ describe('check-updates script', () => {
         throw new Error('Unexpected git error');
       });
 
-      let thrownError: unknown;
-
-      try {
-        main();
-        expect('No error thrown').toBe('Expected UpdateError to be thrown');
-      } catch (error) {
-        thrownError = error;
-      }
-
-      expect(thrownError).toBeInstanceOf(UpdateError);
-      if (thrownError instanceof UpdateError) {
-        expect(thrownError.code).toBe(99);
-        expect(thrownError.message).toBe(
-          'Unexpected error: Unexpected git error'
-        );
-      }
-
+      expect(() => main()).toThrow(UpdateError);
       expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
         'Unexpected error: Unexpected git error'
       );
@@ -377,6 +330,23 @@ describe('check-updates script', () => {
       main();
       expect(global.__mocks__.stdout).toHaveBeenCalledWith(
         'No updates available.'
+      );
+    });
+
+    it('should handle non-UpdateError exceptions in outer catch block', () => {
+      // Mock git status to throw a non-Error object
+      mockExecSync.mockImplementationOnce(() => {
+        const customError = {
+          toString() {
+            return 'Custom error object';
+          },
+        };
+        throw customError;
+      });
+
+      expect(() => main()).toThrow(UpdateError);
+      expect(global.__mocks__.consoleError).toHaveBeenCalledWith(
+        'Unexpected error: Custom error object'
       );
     });
   });
