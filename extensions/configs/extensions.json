@@ -7,7 +7,12 @@
         "args": [
           "C:/Users/Kenichi/Documents/Cline/MCP/github-server/src/github/dist/index.js"
         ],
-        "env": {}
+        "env": {},
+        "repository": {
+          "url": "https://github.com/modelcontextprotocol/servers.git",
+          "branch": "main",
+          "type": "submodule"
+        }
       },
       "security-scanner": {
         "enabled": true,
@@ -15,7 +20,12 @@
         "args": [
           "C:/Users/Kenichi/Documents/Cline/MCP/security-scanner-mcp/build/index.js"
         ],
-        "env": {}
+        "env": {},
+        "repository": {
+          "url": "https://github.com/Cizimy/security-scanner-mcp.git",
+          "branch": "main",
+          "type": "submodule"
+        }
       },
       "test-runner": {
         "enabled": true,
@@ -23,7 +33,12 @@
         "args": [
           "C:/Users/Kenichi/Documents/Cline/MCP/test-runner-mcp/build/index.js"
         ],
-        "env": {}
+        "env": {},
+        "repository": {
+          "url": "https://github.com/Cizimy/test-runner-mcp.git",
+          "branch": "main",
+          "type": "submodule"
+        }
       },
       "docs-manager": {
         "enabled": true,
@@ -31,7 +46,20 @@
         "args": [
           "C:/Users/Kenichi/Documents/Cline/MCP/docs-manager-mcp/build/index.js"
         ],
-        "env": {}
+        "env": {},
+        "repository": {
+          "url": "https://github.com/Cizimy/docs-manager-mcp.git",
+          "branch": "main",
+          "type": "submodule"
+        }
+      }
+    },
+    "management": {
+      "autoSync": true,
+      "updateStrategy": "submodule",
+      "versionControl": {
+        "enforceExternalRepos": true,
+        "allowLocalOverrides": false
       }
     }
   },
