@@ -23,9 +23,23 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 - gitサブモジュールとして外部MCPサーバーを参照
   - github-server: GitHub操作の自動化
-  - memory: メモリベースのデータ永続化
-  - brave-search: Brave Search API連携
-  - google-maps: Google Maps API連携
+  - google-maps-server: Google Maps API連携
+  - memory-server: メモリベースのデータ永続化
+  - brave-search-server: Brave Search API連携
+  - time-server: 時間とタイムゾーン操作
+  - sqlite-server: SQLiteデータベース操作
+  - puppeteer-server: ブラウザ自動化
+  - postgres-server: PostgreSQLデータベース操作
+  - gdrive-server: Google Drive操作
+  - git-server: Git操作
+  - filesystem-server: ファイルシステム操作
+  - everything-server: MCPプロトコル機能テスト
+  - everart-server: EverArt API連携
+  - fetch-server: ウェブコンテンツ取得
+  - sequentialthinking-server: 順次思考とプロブレムソルビング
+  - gitlab-server: GitLab API連携
+  - slack-server: Slack連携
+  - sentry-server: エラー監視と報告
 - 本体との疎結合を維持しながら機能を拡張
 - バージョン管理とアップデートを独立して制御
 
