@@ -5,15 +5,23 @@
 
 [submodule "MCP/security-scanner-mcp"]
 	path = MCP/security-scanner-mcp
-	url = ./MCP/security-scanner-mcp
-	branch = master
+	url = https://github.com/Cizimy/security-scanner-mcp.git
+	branch = main
 
 [submodule "MCP/test-runner-mcp"]
 	path = MCP/test-runner-mcp
-	url = ./MCP/test-runner-mcp
-	branch = master
+	url = https://github.com/Cizimy/test-runner-mcp.git
+	branch = main
 
 [submodule "MCP/docs-manager-mcp"]
 	path = MCP/docs-manager-mcp
-	url = ./MCP/docs-manager-mcp
-	branch = master
+	url = https://github.com/Cizimy/docs-manager-mcp.git
+	branch = main
+[submodule "MCP/wecombot-server"]
+	path = MCP/wecombot-server
+	url = https://github.com/gotoolkits/mcp-wecombot-server.git
+	branch = main
+[submodule "MCP/metoro-mcp-server"]
+	path = MCP/metoro-mcp-server
+	url = https://github.com/metoro-io/metoro-mcp-server.git
+	branch = main

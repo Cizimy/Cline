@@ -21,6 +21,12 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 ### 外部連携（/MCP）
 
 - gitサブモジュールとして外部MCPサーバーを参照
+  - github-server: GitHub操作の自動化
+  - security-scanner: セキュリティ診断
+  - test-runner: テスト実行管理
+  - docs-manager: ドキュメント管理
+  - wecombot-server: チーム間コミュニケーション
+  - metoro-mcp-server: Kubernetesモニタリング
 - 本体との疎結合を維持しながら機能を拡張
 - バージョン管理とアップデートを独立して制御
 
@@ -70,6 +76,7 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
    - 外部リポジトリとしての参照（必須）
      - .gitmodulesでの外部リポジトリURL指定
      - ローカルパス参照の禁止
+     - 信頼できるソースからのサーバー導入
    - サブモジュールによるバージョン管理
    - 設定ファイルでの有効化/無効化
    - リポジトリ情報の明示的な管理
@@ -102,6 +109,7 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
    - MCPサーバー連携の強化
    - 自動化プロセスの拡充
    - ドキュメント体系の整備
+   - モニタリング機能の拡充
 
 ## トラブルシューティング
 
@@ -124,6 +132,8 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 2. 外部リソース
    - MCPサーバーのリポジトリ
+     - Model Context Protocol Servers: https://github.com/modelcontextprotocol/servers
+     - Awesome MCP Servers: https://github.com/punkpeye/awesome-mcp-servers
    - 関連ドキュメント
    - 開発ガイドライン
 
