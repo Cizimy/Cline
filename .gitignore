@@ -37,3 +37,4 @@ Thumbs.db
 
 # Custom sensitive configurations
 /extensions/configs/secrets.json
+MCP/config/*/*.json
