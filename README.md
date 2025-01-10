@@ -9,26 +9,16 @@ Clineのカスタム拡張機能を管理するリポジトリです。
 git clone https://github.com/Cizimy/Cline.git
 cd Cline
 
-# 依存関係のインストール（サブモジュールも自動的に初期化されます）
+# 依存関係のインストール
 npm install
 ```
 
 ## 更新管理
 
-### サブモジュールの更新
-
-```bash
-# サブモジュールを最新バージョンに更新
-npm run update:submodules
-
-# 更新後、必要に応じてビルドを実行
-npm run build
-```
-
 ### 依存関係の更新
 
 ```bash
-# すべての更新をチェック（サブモジュールとnpm）
+# すべての更新をチェック
 npm run check:updates
 
 # すべての更新を実行
@@ -130,28 +120,19 @@ Cline/
 
 ## MCPサーバー
 
-外部MCPサーバーは`MCP/`ディレクトリ配下でサブモジュールとして管理されています。すべてのMCPサーバーは外部リポジトリとして参照する必要があります。現在以下のサーバーが統合されています：
+MCPサーバーは`MCP/`ディレクトリで管理されます。新しいMCPサーバーを追加する際は、以下の手順に従ってください：
 
-- github-server: GitHub操作用MCPサーバー
-- google-maps-server: Google Maps API連携サーバー
-- memory-server: メモリベースのデータ永続化サーバー
-- brave-search-server: Brave Search API連携サーバー
-- time-server: 時間とタイムゾーン操作サーバー
-- sqlite-server: SQLiteデータベース操作サーバー
-- puppeteer-server: ブラウザ自動化サーバー
-- postgres-server: PostgreSQLデータベース操作サーバー
-- gdrive-server: Google Drive操作サーバー
-- git-server: Git操作サーバー
-- filesystem-server: ファイルシステム操作サーバー
-- everything-server: MCPプロトコル機能テスト用サーバー
-- everart-server: EverArt API連携サーバー
-- fetch-server: ウェブコンテンツ取得サーバー
-- sequentialthinking-server: 順次思考とプロブレムソルビングサーバー
-- gitlab-server: GitLab API連携サーバー
-- slack-server: Slack連携サーバー
-- sentry-server: エラー監視と報告サーバー
+### サーバー追加のガイドライン
 
-すべてのサーバーは modelcontextprotocol/servers リポジトリから参照されています。
+1. 環境チェッカーによる互換性確認
+   - システム要件の検証
+   - 必要な環境変数の確認
+   - ランタイムの互換性チェック
+
+2. extensions.jsonでの設定
+   - リポジトリ情報の明示的な指定
+   - 更新戦略の設定
+   - 必要な環境変数の定義
 
 ### サーバーの設定と管理
 
@@ -165,28 +146,9 @@ Cline/
 - 環境変数の設定
 - 自動同期の設定
 
-### サーバー追加のガイドライン
-
-新しいMCPサーバーを追加する際は、以下の手順に従ってください：
-
-1. 環境チェッカーによる互換性確認
-   - システム要件の検証
-   - 必要な環境変数の確認
-   - ランタイムの互換性チェック
-
-2. .gitmodulesでの設定
-   - 外部リポジトリURLの指定（必須）
-   - 適切なブランチの設定
-
-3. extensions.jsonでの設定
-   - リポジトリ情報の明示的な指定
-   - 更新戦略の設定
-   - 必要な環境変数の定義
-
 ## バージョン管理方針
 
 - コア拡張機能：サブモジュールとして管理し、定期的に更新
-- 外部MCPサーバー：サブモジュールとして管理し、安定版にバージョンを固定
 - 依存パッケージ：セマンティックバージョニングに従って更新
 
 ## 貢献

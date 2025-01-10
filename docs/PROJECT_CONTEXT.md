@@ -21,25 +21,7 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 ### 外部連携（/MCP）
 
-- gitサブモジュールとして外部MCPサーバーを参照
-  - github-server: GitHub操作の自動化
-  - google-maps-server: Google Maps API連携
-  - memory-server: メモリベースのデータ永続化
-  - brave-search-server: Brave Search API連携
-  - time-server: 時間とタイムゾーン操作
-  - sqlite-server: SQLiteデータベース操作
-  - puppeteer-server: ブラウザ自動化
-  - postgres-server: PostgreSQLデータベース操作
-  - gdrive-server: Google Drive操作
-  - git-server: Git操作
-  - filesystem-server: ファイルシステム操作
-  - everything-server: MCPプロトコル機能テスト
-  - everart-server: EverArt API連携
-  - fetch-server: ウェブコンテンツ取得
-  - sequentialthinking-server: 順次思考とプロブレムソルビング
-  - gitlab-server: GitLab API連携
-  - slack-server: Slack連携
-  - sentry-server: エラー監視と報告
+- MCPサーバーを管理するディレクトリ
 - 本体との疎結合を維持しながら機能を拡張
 - バージョン管理とアップデートを独立して制御
 
@@ -53,7 +35,6 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 1. バージョン管理
    - semantic-releaseによるバージョニング
-   - gitサブモジュールによる外部依存の管理
    - 更新戦略は設定ファイルで明示的に制御
 
 2. 品質管理
@@ -87,10 +68,7 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 1. サーバー管理
    - 外部リポジトリとしての参照（必須）
-     - .gitmodulesでの外部リポジトリURL指定
-     - ローカルパス参照の禁止
      - 信頼できるソースからのサーバー導入
-   - サブモジュールによるバージョン管理
    - 設定ファイルでの有効化/無効化
    - リポジトリ情報の明示的な管理
      - extensions.jsonでのリポジトリURL指定
@@ -107,7 +85,6 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
    - 疎結合な設計
    - 適切なエラー処理
    - 外部リポジトリ参照の標準化
-     - サブモジュールとしての管理
      - バージョン固定による安定性確保
      - 自動同期の設定
 
@@ -135,7 +112,6 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 ## トラブルシューティング
 
 1. 一般的な問題
-   - サブモジュール同期の問題
    - 環境変数の設定ミス
    - 依存関係の競合
 
@@ -148,7 +124,6 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 
 1. 重要なファイル
    - package.json: プロジェクトの依存関係と設定
-   - .gitmodules: サブモジュールの定義
    - extensions/configs/extensions.json: MCPサーバーの設定
    - extensions/core/environment-checker: 環境互換性チェッカー
 
