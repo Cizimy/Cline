@@ -1,6 +1,83 @@
 {
   "mcp": {
-    "servers": {},
+    "servers": {
+      "aws-kb-retrieval": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/aws-kb-retrieval-server"
+      },
+      "brave-search": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/brave-search"
+      },
+      "everart": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/everart"
+      },
+      "everything": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/everything"
+      },
+      "fetch": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/fetch"
+      },
+      "filesystem": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/filesystem"
+      },
+      "gdrive": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/gdrive"
+      },
+      "git": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/git"
+      },
+      "github": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/github"
+      },
+      "gitlab": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/gitlab"
+      },
+      "google-maps": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/google-maps"
+      },
+      "memory": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/memory"
+      },
+      "postgres": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/postgres"
+      },
+      "puppeteer": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/puppeteer"
+      },
+      "sentry": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/sentry"
+      },
+      "sequentialthinking": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/sequentialthinking"
+      },
+      "slack": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/slack"
+      },
+      "sqlite": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/sqlite"
+      },
+      "time": {
+        "enabled": true,
+        "path": "../../MCP/servers/src/time"
+      }
+    },
     "management": {
       "autoSync": true,
       "updateStrategy": "submodule",

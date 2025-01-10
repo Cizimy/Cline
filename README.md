@@ -120,31 +120,52 @@ Cline/
 
 ## MCPサーバー
 
-MCPサーバーは`MCP/`ディレクトリで管理されます。新しいMCPサーバーを追加する際は、以下の手順に従ってください：
+MCPサーバーは`MCP/servers`ディレクトリでサブモジュールとして管理されています。Model Context Protocol Serversリポジトリの全サーバーが利用可能です。
 
-### サーバー追加のガイドライン
+### サーバー管理の特徴
 
-1. 環境チェッカーによる互換性確認
+1. サブモジュール管理
+   - GitHubの公式リポジトリを参照
+   - 一貫性のあるバージョン管理
+   - 簡単なアップデート管理
+
+2. 環境チェッカーによる互換性確認
    - システム要件の検証
    - 必要な環境変数の確認
    - ランタイムの互換性チェック
 
-2. extensions.jsonでの設定
-   - リポジトリ情報の明示的な指定
-   - 更新戦略の設定
-   - 必要な環境変数の定義
-
-### サーバーの設定と管理
+### サーバーの設定
 
 サーバーの設定は`extensions/configs/extensions.json`で管理されています：
 
-- リポジトリ情報の明示的な指定
-  - 外部リポジトリURLの設定（必須）
-  - ブランチの指定
-  - 更新戦略の設定
-- サーバーの有効/無効の切り替え
-- 環境変数の設定
+- 各サーバーの有効/無効の切り替え
+- パスの設定
+- 環境変数の管理
 - 自動同期の設定
+
+### 利用可能なサーバー
+
+以下のMCPサーバーが利用可能です：
+
+- aws-kb-retrieval: AWS Knowledge Base検索
+- brave-search: Brave検索エンジン連携
+- everart: アート生成・管理
+- everything: ファイル検索
+- fetch: Webコンテンツ取得
+- filesystem: ファイルシステム操作
+- gdrive: Google Drive連携
+- git: Gitリポジトリ操作
+- github: GitHub API連携
+- gitlab: GitLab API連携
+- google-maps: Google Maps連携
+- memory: メモリ管理
+- postgres: PostgreSQL操作
+- puppeteer: ブラウザ自動化
+- sentry: エラー追跡
+- sequentialthinking: 思考プロセス管理
+- slack: Slack連携
+- sqlite: SQLite操作
+- time: 時間管理
 
 ## バージョン管理方針
 
