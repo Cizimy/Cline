@@ -1,6 +1,6 @@
 # プロセス定義スキーマ
 
-version: "1.0.0"
+version: "1.1.0"
 type: "process_schema"
 
 # プロセスタイプの定義
@@ -17,6 +17,9 @@ process_types:
       - name: "dependencies"
         type: "array"
         description: "依存関係のリスト"
+      - name: "validation_steps"
+        type: "array"
+        description: "セットアップ検証手順"
   
   development:
     description: "開発作業用プロセス"
@@ -30,6 +33,9 @@ process_types:
       - name: "test_requirements"
         type: "array"
         description: "テスト要件"
+      - name: "development_environment"
+        type: "object"
+        description: "開発環境設定"
   
   deployment:
     description: "デプロイメント用プロセス"
@@ -43,6 +49,127 @@ process_types:
       - name: "rollback_plan"
         type: "object"
         description: "ロールバック計画"
+        required_fields:
+          - name: "trigger_conditions"
+            type: "array"
+            description: "ロールバックのトリガー条件"
+          - name: "rollback_steps"
+            type: "array"
+            description: "詳細なロールバック手順"
+          - name: "verification_steps"
+            type: "array"
+            description: "ロールバック後の検証手順"
+          - name: "notification_config"
+            type: "object"
+            description: "通知設定"
+
+  mcp_server:
+    description: "MCPサーバー管理用プロセス"
+    required_fields:
+      - name: "server_type"
+        type: "string"
+        description: "サーバーの種類"
+        enum: ["python", "node", "custom"]
+      - name: "runtime_requirements"
+        type: "object"
+        description: "実行時要件"
+      - name: "authentication"
+        type: "object"
+        description: "認証設定"
+      - name: "api_endpoints"
+        type: "array"
+        description: "提供するAPIエンドポイント"
+      - name: "health_check"
+        type: "object"
+        description: "ヘルスチェック設定"
+      - name: "scaling_config"
+        type: "object"
+        description: "スケーリング設定"
+
+  async_process:
+    description: "非同期プロセス用"
+    required_fields:
+      - name: "queue_config"
+        type: "object"
+        description: "キュー設定"
+      - name: "retry_policy"
+        type: "object"
+        description: "リトライポリシー"
+      - name: "timeout_config"
+        type: "object"
+        description: "タイムアウト設定"
+      - name: "progress_tracking"
+        type: "object"
+        description: "進捗追跡設定"
+      - name: "completion_handlers"
+        type: "array"
+        description: "完了ハンドラー"
+
+# プロセス間依存関係の定義
+process_dependency_schema:
+  type: "object"
+  required_fields:
+    - name: "dependency_type"
+      type: "string"
+      enum: ["sequential", "parallel", "conditional", "event_driven"]
+      description: "依存関係の種類"
+    - name: "upstream_process"
+      type: "string"
+      description: "依存元プロセス"
+    - name: "downstream_process"
+      type: "string"
+      description: "依存先プロセス"
+    - name: "conditions"
+      type: "array"
+      description: "依存関係の条件"
+    - name: "timeout"
+      type: "object"
+      description: "タイムアウト設定"
+    - name: "retry_strategy"
+      type: "object"
+      description: "リトライ戦略"
+    - name: "fallback_process"
+      type: "string"
+      description: "フォールバックプロセス"
+
+# 非同期処理の状態管理
+async_state_schema:
+  type: "object"
+  required_fields:
+    - name: "state"
+      type: "string"
+      enum: ["pending", "running", "completed", "failed", "cancelled"]
+      description: "処理の状態"
+    - name: "progress"
+      type: "object"
+      description: "進捗情報"
+    - name: "checkpoints"
+      type: "array"
+      description: "チェックポイント"
+    - name: "error_state"
+      type: "object"
+      description: "エラー状態"
+    - name: "recovery_point"
+      type: "object"
+      description: "リカバリーポイント"
+
+# プロセス間通信の定義
+ipc_schema:
+  type: "object"
+  required_fields:
+    - name: "communication_type"
+      type: "string"
+      enum: ["event", "message", "stream", "shared_memory"]
+      description: "通信方式"
+    - name: "message_format"
+      type: "object"
+      description: "メッセージフォーマット"
+    - name: "routing"
+      type: "object"
+      description: "ルーティング設定"
+    - name: "qos"
+      type: "object"
+      description: "品質設定"
 
 # 入力パラメータの定義
 parameter_schema:
@@ -154,6 +281,17 @@ metrics_schema:
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "MCPサーバー対応と非同期処理の強化"
+    author: "Cline AI"
+    changes:
+      - "MCPサーバー管理用プロセスタイプの追加"
+      - "非同期プロセスタイプの追加"
+      - "プロセス間依存関係の詳細化"
+      - "非同期状態管理の追加"
+      - "プロセス間通信の定義追加"
+      - "ロールバック手順の具体化"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"
