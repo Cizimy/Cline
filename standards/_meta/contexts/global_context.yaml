@@ -1,0 +1,216 @@
+# グローバルコンテキスト定義
+
+version: "1.1.0"
+type: "global_context"
+
+# プロジェクト基本情報
+project_information:
+  name: "Cline Custom Extensions"
+  description: "Clineのカスタム拡張機能を管理するプロジェクト"
+  base_directory: "standards"
+  default_language: "ja"
+  repository:
+    type: "git"
+    url: "https://github.com/Cizimy/Cline.git"
+    branch: "main"
+
+# グローバル設定
+global_settings:
+  environment:
+    production: false
+    debug: true
+    timezone: "Asia/Tokyo"
+    encoding: "UTF-8"
+  
+  security:
+    strict_mode: true
+    allowed_operations:
+      - "file_read"
+      - "file_write"
+      - "command_execution"
+      - "network_access"
+    restricted_paths:
+      - "config/sensitive/"
+      - "credentials/"
+  
+  resource_management:
+    max_memory: 1024
+    max_cpu_usage: 80
+    timeout:
+      default: 300
+      extended: 3600
+
+# AIエージェント設定
+ai_agent_settings:
+  context_preservation:
+    enabled: true
+    scope:
+      - "global"
+      - "process"
+      - "error_patterns"
+    storage:
+      type: "memory"
+      persistence: true
+  
+  learning_patterns:
+    collect_success_patterns: true
+    collect_error_patterns: true
+    pattern_storage:
+      type: "memory"
+      persistence: true
+    analysis:
+      enabled: true
+      frequency: "on_completion"
+  
+  decision_points:
+    validation_required: true
+    confirmation_required: false
+    error_threshold: 3
+    checkpoints:
+      - phase: "initialization"
+        required: true
+      - phase: "execution"
+        required: true
+      - phase: "completion"
+        required: true
+
+# ドキュメント管理
+documentation_management:
+  auto_generation:
+    enabled: true
+    formats:
+      - type: "markdown"
+        template: "templates/documentation/documentation_template.md"
+      - type: "yaml"
+        template: "templates/documentation/yaml_template.yaml"
+  
+  version_control:
+    enabled: true
+    history_retention: 30
+    backup:
+      enabled: true
+      frequency: "daily"
+      location: "docs/archive/"
+  
+  templates:
+    process: "templates/process/base_process_template.md"
+    validation: "templates/validation/validation_template.yaml"
+    documentation: "templates/documentation/documentation_template.md"
+
+# 監視設定
+monitoring_settings:
+  metrics_collection:
+    enabled: true
+    interval: 60
+    metrics:
+      - name: "process_duration"
+        type: "gauge"
+        description: "プロセス実行時間の測定"
+        threshold: 3600
+      - name: "error_count"
+        type: "counter"
+        description: "エラー発生回数の追跡"
+        threshold: 5
+      - name: "success_rate"
+        type: "gauge"
+        description: "プロセス成功率の測定"
+        threshold: 0.95
+      - name: "memory_usage"
+        type: "gauge"
+        description: "メモリ使用率"
+        threshold: 1024
+      - name: "cpu_usage"
+        type: "gauge"
+        description: "CPU使用率"
+        threshold: 80
+  
+  alerting:
+    enabled: true
+    thresholds:
+      error_count: 5
+      duration: 3600
+      memory_usage: 1024
+    notification:
+      channels:
+        - type: "log"
+          level: "error"
+        - type: "system"
+          level: "critical"
+
+# 品質管理
+quality_management:
+  code_standards:
+    style_guide: "Google Style Guide"
+    linting:
+      enabled: true
+      tools:
+        - "eslint"
+        - "prettier"
+    type_checking:
+      enabled: true
+      strict: true
+  
+  testing:
+    unit_tests:
+      required: true
+      coverage_threshold: 80
+    integration_tests:
+      required: false
+      planned: true
+  
+  review_process:
+    peer_review: true
+    automated_checks: true
+    documentation_required: true
+
+# エラー管理
+error_management:
+  logging:
+    level: "detailed"
+    format: "structured"
+    retention: 30
+  
+  error_categories:
+    critical:
+      description: "致命的なエラー"
+      action: "即時中断"
+      notification: "immediate"
+      severity: "critical"
+    recoverable:
+      description: "回復可能なエラー"
+      action: "リトライ"
+      max_retries: 3
+      severity: "high"
+    warning:
+      description: "警告"
+      action: "記録して継続"
+      log_level: "warning"
+      severity: "low"
+  
+  recovery:
+    auto_recovery:
+      enabled: true
+      max_attempts: 3
+    manual_intervention:
+      required_for:
+        - "critical_errors"
+        - "security_violations"
+
+# 依存関係管理
+dependency_management:
+  package_management:
+    tool: "npm"
+    auto_update: false
+    security_scanning: true
+  
+  version_control:
+    strategy: "semantic"
+    update_frequency: "monthly"
+    compatibility_check: true
+
+# 更新履歴
+history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "プロジェクト全体のグローバルコンテキストを定義、メトリクス定義の統一、エラー管理の改善"
+    author: "Cline AI"

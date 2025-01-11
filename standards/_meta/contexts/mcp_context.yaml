@@ -1,7 +1,39 @@
 # MCPサーバーコンテキスト定義
 
-version: "1.0.0"
+version: "1.1.0"
 type: "mcp_context"
+
+# サーバー定義
+server_definition:
+  server_type:
+    type: "string"
+    required: true
+    enum: ["python", "node", "custom"]
+    description: "MCPサーバーの実行環境タイプ"
+  
+  api_endpoints:
+    base_url: "string"
+    version: "string"
+    rate_limits:
+      requests_per_second: "number"
+      burst_limit: "number"
+    timeout:
+      connect: "number"
+      read: "number"
+      write: "number"
+  
+  scaling_config:
+    min_instances: "number"
+    max_instances: "number"
+    auto_scaling:
+      enabled: "boolean"
+      metrics:
+        - name: "cpu_usage"
+          threshold: 80
+        - name: "memory_usage"
+          threshold: 1024
+        - name: "request_count"
+          threshold: 1000
 
 # 必要な知識ベース
 required_knowledge:
@@ -40,12 +72,15 @@ state_tracking:
       - from: "not_started"
         to: "in_progress"
         triggers: ["setup_initiated"]
+        validation: "environment_check"
       - from: "in_progress"
         to: "completed"
         triggers: ["setup_successful"]
+        validation: "completion_check"
       - from: "in_progress"
         to: "failed"
         triggers: ["setup_error"]
+        validation: "error_analysis"
   
   configuration:
     states:
@@ -57,12 +92,59 @@ state_tracking:
       - from: "unconfigured"
         to: "partially_configured"
         triggers: ["config_started"]
+        validation: "config_check"
       - from: "partially_configured"
         to: "fully_configured"
         triggers: ["config_completed"]
+        validation: "config_validation"
       - from: "fully_configured"
         to: "invalid"
         triggers: ["config_error"]
+        validation: "error_validation"
+
+# 非同期処理管理
+async_processing:
+  state_management:
+    enabled: true
+    checkpoints:
+      required: true
+      interval: "number"
+      timeout: "number"
+    recovery:
+      auto_retry: true
+      max_retries: 3
+      backoff_strategy: "exponential"
+  
+  task_tracking:
+    unique_id: true
+    status_updates:
+      frequency: "realtime"
+      persistence: true
+    completion_verification:
+      required: true
+      timeout: 300
+
+# プロセス間通信（IPC）
+ipc_configuration:
+  communication_types:
+    - type: "message_queue"
+      protocol: "AMQP"
+      reliability: "at_least_once"
+    - type: "shared_memory"
+      access_mode: "read_write"
+      sync_mechanism: "mutex"
+    - type: "socket"
+      protocol: "TCP"
+      encryption: true
+  
+  message_patterns:
+    - pattern: "request_response"
+      timeout: 30
+      retry_policy: "exponential_backoff"
+    - pattern: "publish_subscribe"
+      delivery_guarantee: "at_least_once"
+    - pattern: "stream"
+      buffer_size: 1024
 
 # メモリ要件
 memory_requirements:
@@ -70,15 +152,20 @@ memory_requirements:
     type: "persistent"
     storage: "file"
     path: "validations/history/config_history.yaml"
+    retention_period: 30
   
   error_patterns:
     type: "learning"
-    storage: "memory"
+    storage:
+      type: "memory"
+      persistence: true
     update_frequency: "on_error"
   
   successful_patterns:
     type: "learning"
-    storage: "memory"
+    storage:
+      type: "memory"
+      persistence: true
     update_frequency: "on_success"
 
 # 操作パターン
@@ -107,12 +194,17 @@ operation_patterns:
       - after: "認証情報設定"
         check: "auth_validation"
 
-# エラーパターン
+# エラーパターンと重要度
 error_patterns:
   authentication:
     symptoms:
       - "401 Unauthorized"
       - "Invalid token"
+    severity: "high"
+    escalation_policy:
+      level: 1
+      notify: ["system_admin"]
+      auto_retry: false
     diagnosis:
       - "環境変数の確認"
       - "トークンの有効期限確認"
@@ -124,12 +216,49 @@ error_patterns:
     symptoms:
       - "Connection refused"
       - "Timeout"
+    severity: "critical"
+    escalation_policy:
+      level: 2
+      notify: ["system_admin", "network_admin"]
+      auto_retry: true
     diagnosis:
       - "サーバー状態の確認"
       - "ネットワーク接続の確認"
     recovery:
       - "サーバーの再起動"
       - "ネットワーク設定の修正"
+
+# モニタリング設定
+monitoring_configuration:
+  metrics_collection:
+    enabled: true
+    interval: 60
+    metrics:
+      - name: "process_duration"
+        type: "gauge"
+        description: "プロセス実行時間"
+        threshold: 3600
+      - name: "error_count"
+        type: "counter"
+        description: "エラー発生回数"
+        threshold: 5
+      - name: "success_rate"
+        type: "gauge"
+        description: "成功率"
+        threshold: 0.95
+  
+  alerting:
+    enabled: true
+    thresholds:
+      error_count: 5
+      duration: 3600
+      memory_usage: 1024
+    notification:
+      channels:
+        - type: "log"
+          level: "error"
+        - type: "system"
+          level: "critical"
 
 # 学習パターン
 learning_patterns:
@@ -142,9 +271,18 @@ learning_patterns:
     - "エラーパターンの認識"
     - "適切な回復手順の選択"
     - "再発防止策の実装"
+  
+  pattern_storage:
+    type: "memory"
+    persistence: true
+    update_frequency: "on_completion"
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "MCPサーバー定義の強化、非同期処理管理の追加、IPCの強化、エラー重要度の追加、整合性の改善"
+    author: "Cline AI"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"

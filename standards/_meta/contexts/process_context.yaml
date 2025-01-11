@@ -1,6 +1,6 @@
 # プロセス実行コンテキスト定義
 
-version: "1.0.0"
+version: "1.1.0"
 type: "process_context"
 
 # プロセス実行環境
@@ -15,6 +15,48 @@ execution_environment:
       description: "ファイル書き込みツール"
     - name: "apply_diff"
       description: "差分適用ツール"
+  environment_variables:
+    required:
+      - name: "PROJECT_ROOT"
+        description: "プロジェクトのルートディレクトリ"
+      - name: "CONFIG_PATH"
+        description: "設定ファイルのパス"
+    optional:
+      - name: "DEBUG_MODE"
+        description: "デバッグモードの設定"
+        default: "false"
+
+# AIエージェント設定
+ai_agent_configuration:
+  context_preservation:
+    enabled: true
+    scope:
+      - "global"
+      - "process"
+      - "error_patterns"
+    storage:
+      type: "memory"
+      persistence: true
+  
+  learning_patterns:
+    collect_success_patterns: true
+    collect_error_patterns: true
+    pattern_storage: "memory"
+    analysis:
+      enabled: true
+      frequency: "on_completion"
+  
+  decision_making:
+    validation_required: true
+    confirmation_required: false
+    error_threshold: 3
+    checkpoints:
+      - phase: "initialization"
+        required: true
+      - phase: "execution"
+        required: true
+      - phase: "completion"
+        required: true
 
 # 実行フェーズ定義
 execution_phases:
@@ -27,6 +69,10 @@ execution_phases:
     outputs:
       - "準備完了状態"
       - "環境チェックレポート"
+    monitoring:
+      metrics:
+        - "preparation_duration"
+        - "check_success_rate"
   
   execution:
     description: "実行フェーズ"
@@ -37,6 +83,13 @@ execution_phases:
     outputs:
       - "実行結果"
       - "ログ情報"
+    performance_metrics:
+      - name: "execution_time"
+        threshold: 3600
+      - name: "memory_usage"
+        threshold: 1024
+      - name: "cpu_usage"
+        threshold: 80
   
   validation:
     description: "検証フェーズ"
@@ -47,6 +100,9 @@ execution_phases:
     outputs:
       - "検証レポート"
       - "問題点リスト"
+    strict_mode:
+      enabled: true
+      fail_fast: true
 
 # 判断基準
 decision_criteria:
@@ -56,12 +112,18 @@ decision_criteria:
       critical:
         description: "致命的なエラー"
         action: "即時中断"
+        notification: "immediate"
+        severity: "critical"
       recoverable:
         description: "回復可能なエラー"
         action: "リトライ"
+        max_retries: 3
+        severity: "high"
       warning:
         description: "警告"
         action: "記録して継続"
+        log_level: "warning"
+        severity: "low"
   
   validation_rules:
     strict_mode:
@@ -70,66 +132,149 @@ decision_criteria:
         - "すべての必須チェックをパス"
         - "エラーが発生していない"
         - "期待される出力が存在"
+      auto_recovery: false
     
     flexible_mode:
       enabled: false
       conditions:
         - "重要なチェックのみパス"
         - "重大なエラーが発生していない"
+      auto_recovery: true
 
 # 状態管理
 state_management:
   tracked_states:
     - name: "preparation_state"
       possible_values: ["not_started", "in_progress", "completed", "failed"]
+      persistence: true
     - name: "execution_state"
       possible_values: ["waiting", "running", "completed", "failed"]
+      persistence: true
     - name: "validation_state"
       possible_values: ["pending", "in_progress", "passed", "failed"]
+      persistence: true
   
   state_transitions:
     - from: "preparation_state.not_started"
       to: "preparation_state.in_progress"
       trigger: "start_preparation"
+      validation: "environment_check"
     - from: "preparation_state.completed"
       to: "execution_state.running"
       trigger: "start_execution"
+      validation: "readiness_check"
     - from: "execution_state.completed"
       to: "validation_state.in_progress"
       trigger: "start_validation"
+      validation: "completion_check"
+
+# プロセス依存関係
+process_dependencies:
+  mcp_server_setup:
+    requires:
+      - "environment_check"
+      - "authentication_setup"
+    provides:
+      - "configured_server"
+    state_changes:
+      - "system_environment"
+      - "configuration_files"
+  
+  mcp_server_operation:
+    requires:
+      - "configured_server"
+    provides:
+      - "operational_server"
+    state_changes:
+      - "server_status"
+      - "operation_logs"
 
 # 出力管理
 output_management:
   log_levels:
     - name: "debug"
       enabled: true
+      persistence: true
     - name: "info"
       enabled: true
+      persistence: true
     - name: "warning"
       enabled: true
+      persistence: true
     - name: "error"
       enabled: true
+      persistence: true
+      notification: true
   
   artifacts:
     - type: "log_file"
       path: "logs/process_execution.log"
+      rotation: true
+      max_size: 10485760
     - type: "report"
       path: "reports/execution_report.md"
+      format: "markdown"
+      template: "templates/report_template.md"
     - type: "metrics"
       path: "metrics/process_metrics.yaml"
+      collection_interval: 60
+      retention_period: 604800
 
 # プロセス間連携
 process_interaction:
   dependencies:
-    check_method: "explicit"  # 明示的な依存関係チェック
-    handling: "strict"        # 厳格な依存関係の扱い
+    check_method: "explicit"
+    handling: "strict"
+    validation:
+      enabled: true
+      timeout: 30
   
   data_sharing:
-    method: "file_based"      # ファイルベースのデータ共有
-    location: "shared_data/"  # 共有データの保存場所
+    method: "file_based"
+    location: "shared_data/"
+    format: "yaml"
+    cleanup:
+      enabled: true
+      retention_period: 86400
+
+# モニタリング設定
+monitoring_configuration:
+  metrics_collection:
+    enabled: true
+    interval: 60
+    metrics:
+      - name: "process_duration"
+        type: "gauge"
+        description: "プロセス実行時間"
+        threshold: 3600
+      - name: "error_count"
+        type: "counter"
+        description: "エラー発生回数"
+        threshold: 5
+      - name: "success_rate"
+        type: "gauge"
+        description: "成功率"
+        threshold: 0.95
+  
+  alerting:
+    enabled: true
+    thresholds:
+      error_count: 5
+      duration: 3600
+      memory_usage: 1024
+    notification:
+      channels:
+        - type: "log"
+          level: "error"
+        - type: "system"
+          level: "critical"
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "AIエージェント設定の追加、モニタリング強化、プロセス依存関係の詳細化、整合性の改善"
+    author: "Cline AI"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"
