@@ -145,6 +145,9 @@ async_processing:
       required: true
       interval: "number"
       timeout: "number"
+      storage_pattern:
+        reference: "async_storage_patterns.yaml#checkpoint_storage"
+        default: "memory_based"
     recovery:
       auto_retry: true
       max_retries: 3
@@ -155,6 +158,11 @@ async_processing:
     status_updates:
       frequency: "realtime"
       persistence: true
+      format:
+        reference: "async_storage_patterns.yaml#progress_tracking.format"
+      storage_pattern:
+        reference: "async_storage_patterns.yaml#pattern_storage"
+        default: "memory"
     completion_verification:
       required: true
       timeout: 300
@@ -316,6 +324,64 @@ operation_patterns:
 
 # エラーパターンと重要度
 error_patterns:
+  # 重要度の定義
+  severity_levels:
+    critical:
+      response_time: 15  # 分単位
+      description: "即時対応（15分以内）"
+      examples:
+        - "システム全体の機能停止"
+        - "重大なセキュリティ違反"
+        - "データ損失のリスク"
+    high:
+      response_time: 60  # 分単位
+      description: "1時間以内の対応"
+      examples:
+        - "主要機能の部分的な停止"
+        - "パフォーマンスの深刻な低下"
+        - "データ整合性の問題"
+    low:
+      response_time: 1440  # 分単位
+      description: "24時間以内の対応"
+      examples:
+        - "軽微な機能の不具合"
+        - "パフォーマンスの軽度な低下"
+        - "非重要な警告"
+
+  # 自動リカバリー条件の定義
+  auto_recovery_conditions:
+    retry_conditions:
+      max_retries:
+        critical: 2
+        high: 3
+        low: 5
+      retry_interval:
+        critical: 1  # 分単位
+        high: 5
+        low: 15
+      backoff_multiplier: 1.5
+    
+    error_type_conditions:
+      recoverable:
+        - "connection_timeout"
+        - "rate_limit_exceeded"
+        - "temporary_service_unavailable"
+      non_recoverable:
+        - "authentication_failed"
+        - "invalid_configuration"
+        - "permission_denied"
+    
+    resource_state_conditions:
+      required_states:
+        - "system_responsive"
+        - "sufficient_memory"
+        - "network_available"
+      thresholds:
+        cpu_usage: 80  # パーセント
+        memory_usage: 90  # パーセント
+        disk_space: 85  # パーセント
+
+  # エラーパターンの定義
   authentication:
     symptoms:
       - "401 Unauthorized"
