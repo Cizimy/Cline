@@ -10,6 +10,11 @@ server_definition:
     required: true
     enum: ["python", "node", "custom"]
     description: "MCPサーバーの実行環境タイプ"
+    reference: "standards/processes/mcp/server_types.yaml"
+    validation:
+      runtime_check: true
+      dependency_check: true
+      compatibility_check: true
   
   api_endpoints:
     base_url: "string"
@@ -23,17 +28,47 @@ server_definition:
       write: "number"
   
   scaling_config:
-    min_instances: "number"
-    max_instances: "number"
-    auto_scaling:
-      enabled: "boolean"
-      metrics:
-        - name: "cpu_usage"
-          threshold: 80
-        - name: "memory_usage"
-          threshold: 1024
-        - name: "request_count"
-          threshold: 1000
+    required: false
+    description: "スケーリング設定（オプショナル）"
+    properties:
+      min_instances:
+        type: "number"
+        default: 1
+      max_instances:
+        type: "number"
+        default: 1
+      auto_scaling:
+        type: "object"
+        required: false
+        properties:
+          enabled:
+            type: "boolean"
+            default: false
+          metrics:
+            type: "array"
+            required: false
+            description: "スケーリングメトリクス（オプショナル）"
+            items:
+              type: "object"
+              required: false
+              properties:
+                name:
+                  type: "string"
+                  enum: ["cpu_usage", "memory_usage", "request_count"]
+                threshold:
+                  type: "number"
+                description:
+                  type: "string"
+            default:
+              - name: "cpu_usage"
+                threshold: 80
+                description: "CPU使用率（%）"
+              - name: "memory_usage"
+                threshold: 1024
+                description: "メモリ使用量（MB）"
+              - name: "request_count"
+                threshold: 1000
+                description: "リクエスト数/分"
 
 # 必要な知識ベース
 required_knowledge:
@@ -130,21 +165,106 @@ ipc_configuration:
     - type: "message_queue"
       protocol: "AMQP"
       reliability: "at_least_once"
+      metrics:
+        - name: "queue_length"
+          type: "gauge"
+          description: "メッセージキューの長さ"
+          threshold: 1000
+          alert_level: "warning"
+        - name: "processing_time"
+          type: "histogram"
+          description: "メッセージ処理時間（ms）"
+          threshold: 500
+          alert_level: "warning"
+        - name: "error_rate"
+          type: "rate"
+          description: "メッセージ処理エラー率"
+          threshold: 0.01
+          alert_level: "critical"
+
     - type: "shared_memory"
       access_mode: "read_write"
       sync_mechanism: "mutex"
+      metrics:
+        - name: "memory_usage"
+          type: "gauge"
+          description: "共有メモリ使用率"
+          threshold: 80
+          alert_level: "warning"
+        - name: "lock_contention"
+          type: "counter"
+          description: "ロック競合回数"
+          threshold: 100
+          alert_level: "warning"
+        - name: "access_latency"
+          type: "histogram"
+          description: "メモリアクセス遅延（μs）"
+          threshold: 1000
+          alert_level: "warning"
+
     - type: "socket"
       protocol: "TCP"
       encryption: true
+      metrics:
+        - name: "connection_count"
+          type: "gauge"
+          description: "アクティブな接続数"
+          threshold: 1000
+          alert_level: "warning"
+        - name: "bandwidth_usage"
+          type: "gauge"
+          description: "帯域幅使用率"
+          threshold: 80
+          alert_level: "warning"
+        - name: "packet_loss"
+          type: "rate"
+          description: "パケット損失率"
+          threshold: 0.001
+          alert_level: "critical"
   
   message_patterns:
     - pattern: "request_response"
       timeout: 30
       retry_policy: "exponential_backoff"
+      metrics:
+        - name: "response_time"
+          type: "histogram"
+          description: "リクエスト-レスポンス時間（ms）"
+          threshold: 1000
+          alert_level: "warning"
+        - name: "retry_count"
+          type: "counter"
+          description: "リトライ回数"
+          threshold: 3
+          alert_level: "warning"
+
     - pattern: "publish_subscribe"
       delivery_guarantee: "at_least_once"
+      metrics:
+        - name: "subscriber_count"
+          type: "gauge"
+          description: "アクティブなサブスクライバー数"
+          threshold: 100
+          alert_level: "info"
+        - name: "message_rate"
+          type: "rate"
+          description: "メッセージ配信率（msg/s）"
+          threshold: 1000
+          alert_level: "warning"
+
     - pattern: "stream"
       buffer_size: 1024
+      metrics:
+        - name: "buffer_usage"
+          type: "gauge"
+          description: "バッファ使用率"
+          threshold: 80
+          alert_level: "warning"
+        - name: "throughput"
+          type: "rate"
+          description: "データスループット（MB/s）"
+          threshold: 100
+          alert_level: "warning"
 
 # メモリ要件
 memory_requirements:
@@ -228,54 +348,25 @@ error_patterns:
       - "サーバーの再起動"
       - "ネットワーク設定の修正"
 
-# モニタリング設定
+# モニタリング設定の参照
 monitoring_configuration:
-  metrics_collection:
-    enabled: true
-    interval: 60
-    metrics:
-      - name: "process_duration"
-        type: "gauge"
-        description: "プロセス実行時間"
-        threshold: 3600
-      - name: "error_count"
-        type: "counter"
-        description: "エラー発生回数"
-        threshold: 5
-      - name: "success_rate"
-        type: "gauge"
-        description: "成功率"
-        threshold: 0.95
-  
-  alerting:
-    enabled: true
-    thresholds:
-      error_count: 5
-      duration: 3600
-      memory_usage: 1024
-    notification:
-      channels:
-        - type: "log"
-          level: "error"
-        - type: "system"
-          level: "critical"
+  reference: "global_context.monitoring_settings"
+  server_specific_metrics:
+    - name: "api_response_time"
+      type: "gauge"
+      description: "APIレスポンス時間"
+    - name: "active_connections"
+      type: "gauge"
+      description: "アクティブな接続数"
 
-# 学習パターン
+# 学習パターンの参照
 learning_patterns:
-  success_criteria:
-    - "エラーなしでの完了"
-    - "期待された出力の生成"
-    - "パフォーマンス要件の達成"
-  
-  error_recovery:
-    - "エラーパターンの認識"
-    - "適切な回復手順の選択"
-    - "再発防止策の実装"
-  
-  pattern_storage:
-    type: "memory"
-    persistence: true
-    update_frequency: "on_completion"
+  reference: "global_context.ai_agent_settings.learning_patterns"
+  server_specific_patterns:
+    - name: "api_interaction"
+      description: "APIインタラクションパターン"
+    - name: "server_lifecycle"
+      description: "サーバーライフサイクル管理パターン"
 
 # 更新履歴
 history:

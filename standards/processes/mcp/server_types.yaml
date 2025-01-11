@@ -1,0 +1,63 @@
+# MCPサーバータイプ定義
+version: "1.0.0"
+type: "server_types"
+
+# サーバータイプの詳細仕様
+specifications:
+  python:
+    runtime_versions: ["3.8", "3.9", "3.10", "3.11"]
+    package_manager: "pip"
+    required_dependencies: ["mcp-sdk"]
+    environment:
+      PYTHONPATH: "required"
+      PYTHON_ENV: "optional"
+    build:
+      requirements: "requirements.txt"
+      setup: "setup.py"
+
+  node:
+    runtime_versions: ["16.x", "18.x", "20.x"]
+    package_manager: "npm"
+    required_dependencies: ["@modelcontextprotocol/sdk"]
+    environment:
+      NODE_ENV: "optional"
+      NPM_TOKEN: "optional"
+    build:
+      package: "package.json"
+      typescript: "tsconfig.json"
+
+  custom:
+    validation_required: true
+    documentation_required: true
+    requirements:
+      - "カスタムランタイムの仕様書"
+      - "依存関係の明示"
+      - "環境要件の定義"
+    validation:
+      - "互換性テスト"
+      - "パフォーマンステスト"
+      - "セキュリティチェック"
+
+# 共通の検証要件
+common_validation:
+  runtime:
+    - "バージョン互換性"
+    - "必要なツールの存在"
+    - "環境変数の設定"
+  
+  dependencies:
+    - "必須パッケージの存在"
+    - "バージョン整合性"
+    - "ライセンス確認"
+  
+  security:
+    - "脆弱性スキャン"
+    - "権限チェック"
+    - "認証設定の確認"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン - mcp_context.yamlから分離"
+    author: "Cline AI"
