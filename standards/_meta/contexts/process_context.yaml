@@ -1,0 +1,136 @@
+# プロセス実行コンテキスト定義
+
+version: "1.0.0"
+type: "process_context"
+
+# プロセス実行環境
+execution_environment:
+  working_directory: "standards"
+  required_tools:
+    - name: "execute_command"
+      description: "コマンド実行ツール"
+    - name: "read_file"
+      description: "ファイル読み込みツール"
+    - name: "write_to_file"
+      description: "ファイル書き込みツール"
+    - name: "apply_diff"
+      description: "差分適用ツール"
+
+# 実行フェーズ定義
+execution_phases:
+  preparation:
+    description: "実行準備フェーズ"
+    required_checks:
+      - "環境変数の確認"
+      - "依存関係の確認"
+      - "権限の確認"
+    outputs:
+      - "準備完了状態"
+      - "環境チェックレポート"
+  
+  execution:
+    description: "実行フェーズ"
+    monitoring_points:
+      - "進捗状況"
+      - "リソース使用状況"
+      - "エラー発生状況"
+    outputs:
+      - "実行結果"
+      - "ログ情報"
+  
+  validation:
+    description: "検証フェーズ"
+    validation_points:
+      - "結果の整合性"
+      - "副作用の確認"
+      - "パフォーマンス評価"
+    outputs:
+      - "検証レポート"
+      - "問題点リスト"
+
+# 判断基準
+decision_criteria:
+  error_handling:
+    retry_threshold: 3
+    error_categories:
+      critical:
+        description: "致命的なエラー"
+        action: "即時中断"
+      recoverable:
+        description: "回復可能なエラー"
+        action: "リトライ"
+      warning:
+        description: "警告"
+        action: "記録して継続"
+  
+  validation_rules:
+    strict_mode:
+      enabled: true
+      conditions:
+        - "すべての必須チェックをパス"
+        - "エラーが発生していない"
+        - "期待される出力が存在"
+    
+    flexible_mode:
+      enabled: false
+      conditions:
+        - "重要なチェックのみパス"
+        - "重大なエラーが発生していない"
+
+# 状態管理
+state_management:
+  tracked_states:
+    - name: "preparation_state"
+      possible_values: ["not_started", "in_progress", "completed", "failed"]
+    - name: "execution_state"
+      possible_values: ["waiting", "running", "completed", "failed"]
+    - name: "validation_state"
+      possible_values: ["pending", "in_progress", "passed", "failed"]
+  
+  state_transitions:
+    - from: "preparation_state.not_started"
+      to: "preparation_state.in_progress"
+      trigger: "start_preparation"
+    - from: "preparation_state.completed"
+      to: "execution_state.running"
+      trigger: "start_execution"
+    - from: "execution_state.completed"
+      to: "validation_state.in_progress"
+      trigger: "start_validation"
+
+# 出力管理
+output_management:
+  log_levels:
+    - name: "debug"
+      enabled: true
+    - name: "info"
+      enabled: true
+    - name: "warning"
+      enabled: true
+    - name: "error"
+      enabled: true
+  
+  artifacts:
+    - type: "log_file"
+      path: "logs/process_execution.log"
+    - type: "report"
+      path: "reports/execution_report.md"
+    - type: "metrics"
+      path: "metrics/process_metrics.yaml"
+
+# プロセス間連携
+process_interaction:
+  dependencies:
+    check_method: "explicit"  # 明示的な依存関係チェック
+    handling: "strict"        # 厳格な依存関係の扱い
+  
+  data_sharing:
+    method: "file_based"      # ファイルベースのデータ共有
+    location: "shared_data/"  # 共有データの保存場所
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン"
+    author: "Cline AI"

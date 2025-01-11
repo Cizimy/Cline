@@ -1,0 +1,134 @@
+# 検証フレームワークスキーマ定義
+
+version: "1.0.0"
+type: "validation_schema"
+
+# 検証タイプの定義
+validation_types:
+  prerequisites:
+    description: "前提条件の検証"
+    required_fields:
+      - name: "check_items"
+        type: "array"
+        description: "チェック項目のリスト"
+      - name: "severity"
+        type: "string"
+        enum: ["critical", "warning", "info"]
+      - name: "recovery_action"
+        type: "string"
+        description: "失敗時の回復手順"
+  
+  process:
+    description: "プロセス実行中の検証"
+    required_fields:
+      - name: "validation_points"
+        type: "array"
+        description: "検証ポイントのリスト"
+      - name: "expected_state"
+        type: "object"
+        description: "期待される状態"
+      - name: "timeout"
+        type: "number"
+        description: "タイムアウト時間（秒）"
+  
+  completion:
+    description: "完了条件の検証"
+    required_fields:
+      - name: "success_criteria"
+        type: "array"
+        description: "成功条件のリスト"
+      - name: "artifacts"
+        type: "array"
+        description: "成果物のリスト"
+      - name: "quality_gates"
+        type: "array"
+        description: "品質基準のリスト"
+
+# 検証結果の定義
+result_schema:
+  type: "object"
+  required_fields:
+    - name: "status"
+      type: "string"
+      enum: ["passed", "failed", "warning"]
+    - name: "details"
+      type: "object"
+      properties:
+        - name: "message"
+          type: "string"
+        - name: "location"
+          type: "string"
+        - name: "timestamp"
+          type: "string"
+    - name: "metrics"
+      type: "object"
+      description: "検証に関する測定値"
+
+# 検証ルールの定義
+rule_schema:
+  type: "object"
+  required_fields:
+    - name: "condition"
+      type: "string"
+      description: "検証条件の定義"
+    - name: "expected_value"
+      type: "any"
+      description: "期待値"
+    - name: "operator"
+      type: "string"
+      enum: ["equals", "not_equals", "greater_than", "less_than", "contains", "not_contains"]
+    - name: "error_message"
+      type: "string"
+      description: "エラー時のメッセージ"
+
+# 回復手順の定義
+recovery_schema:
+  type: "object"
+  required_fields:
+    - name: "steps"
+      type: "array"
+      description: "回復手順のステップ"
+    - name: "verification"
+      type: "object"
+      description: "回復後の検証方法"
+    - name: "max_attempts"
+      type: "number"
+      description: "最大試行回数"
+
+# レポート生成の定義
+report_schema:
+  type: "object"
+  required_fields:
+    - name: "summary"
+      type: "object"
+      description: "検証結果の要約"
+    - name: "details"
+      type: "array"
+      description: "詳細な検証結果"
+    - name: "metrics"
+      type: "object"
+      description: "検証に関する測定値"
+    - name: "recommendations"
+      type: "array"
+      description: "改善提案"
+
+# メトリクスの定義
+metrics_schema:
+  type: "object"
+  required_fields:
+    - name: "execution_time"
+      type: "number"
+      description: "実行時間"
+    - name: "success_rate"
+      type: "number"
+      description: "成功率"
+    - name: "error_count"
+      type: "number"
+      description: "エラー数"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン"
+    author: "Cline AI"

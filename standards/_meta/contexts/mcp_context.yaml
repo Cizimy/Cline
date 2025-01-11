@@ -1,0 +1,151 @@
+# MCPサーバーコンテキスト定義
+
+version: "1.0.0"
+type: "mcp_context"
+
+# 必要な知識ベース
+required_knowledge:
+  server_architecture:
+    description: "MCPサーバーのアーキテクチャ理解"
+    components:
+      - "通信プロトコル"
+      - "認証メカニズム"
+      - "エラーハンドリング"
+      - "状態管理"
+  
+  authentication_methods:
+    description: "認証方式の理解"
+    types:
+      - "環境変数ベース"
+      - "トークンベース"
+      - "OAuth認証"
+  
+  error_handling:
+    description: "エラー処理パターン"
+    patterns:
+      - "認証エラー"
+      - "通信エラー"
+      - "タイムアウト"
+      - "リソース不足"
+
+# 状態追跡
+state_tracking:
+  installation:
+    states:
+      - "not_started"
+      - "in_progress"
+      - "completed"
+      - "failed"
+    transitions:
+      - from: "not_started"
+        to: "in_progress"
+        triggers: ["setup_initiated"]
+      - from: "in_progress"
+        to: "completed"
+        triggers: ["setup_successful"]
+      - from: "in_progress"
+        to: "failed"
+        triggers: ["setup_error"]
+  
+  configuration:
+    states:
+      - "unconfigured"
+      - "partially_configured"
+      - "fully_configured"
+      - "invalid"
+    transitions:
+      - from: "unconfigured"
+        to: "partially_configured"
+        triggers: ["config_started"]
+      - from: "partially_configured"
+        to: "fully_configured"
+        triggers: ["config_completed"]
+      - from: "fully_configured"
+        to: "invalid"
+        triggers: ["config_error"]
+
+# メモリ要件
+memory_requirements:
+  previous_configurations:
+    type: "persistent"
+    storage: "file"
+    path: "validations/history/config_history.yaml"
+  
+  error_patterns:
+    type: "learning"
+    storage: "memory"
+    update_frequency: "on_error"
+  
+  successful_patterns:
+    type: "learning"
+    storage: "memory"
+    update_frequency: "on_success"
+
+# 操作パターン
+operation_patterns:
+  setup:
+    steps:
+      - "環境チェック"
+      - "依存関係インストール"
+      - "初期設定"
+      - "動作確認"
+    validation_points:
+      - after: "環境チェック"
+        check: "environment_validation"
+      - after: "初期設定"
+        check: "configuration_validation"
+  
+  configuration:
+    steps:
+      - "設定ファイル作成"
+      - "環境変数設定"
+      - "認証情報設定"
+      - "接続テスト"
+    validation_points:
+      - after: "設定ファイル作成"
+        check: "file_validation"
+      - after: "認証情報設定"
+        check: "auth_validation"
+
+# エラーパターン
+error_patterns:
+  authentication:
+    symptoms:
+      - "401 Unauthorized"
+      - "Invalid token"
+    diagnosis:
+      - "環境変数の確認"
+      - "トークンの有効期限確認"
+    recovery:
+      - "トークンの再取得"
+      - "認証情報の更新"
+  
+  connection:
+    symptoms:
+      - "Connection refused"
+      - "Timeout"
+    diagnosis:
+      - "サーバー状態の確認"
+      - "ネットワーク接続の確認"
+    recovery:
+      - "サーバーの再起動"
+      - "ネットワーク設定の修正"
+
+# 学習パターン
+learning_patterns:
+  success_criteria:
+    - "エラーなしでの完了"
+    - "期待された出力の生成"
+    - "パフォーマンス要件の達成"
+  
+  error_recovery:
+    - "エラーパターンの認識"
+    - "適切な回復手順の選択"
+    - "再発防止策の実装"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン"
+    author: "Cline AI"

@@ -1,0 +1,130 @@
+# AIエージェント指向の作業標準設計 - メタ情報定義
+
+version: "1.0.0"
+
+# グローバル設定
+global:
+  project_name: "Cline Custom Extensions"
+  base_directory: "standards"
+  default_language: "ja"
+  schema_version: "1.0.0"
+
+# コンテキスト定義
+contexts:
+  global:
+    type: "project_context"
+    path: "contexts/global_context.yaml"
+    required: true
+  mcp:
+    type: "mcp_context"
+    path: "contexts/mcp_context.yaml"
+    required: true
+  process:
+    type: "process_context"
+    path: "contexts/process_context.yaml"
+    required: true
+
+# スキーマ定義
+schemas:
+  process:
+    path: "schemas/process_schema.yaml"
+    description: "プロセス定義のスキーマ"
+  validation:
+    path: "schemas/validation_schema.yaml"
+    description: "検証定義のスキーマ"
+  context:
+    path: "schemas/context_schema.yaml"
+    description: "コンテキスト定義のスキーマ"
+  error:
+    path: "schemas/error_schema.yaml"
+    description: "エラーパターン定義のスキーマ"
+
+# プロセス依存関係
+process_dependencies:
+  mcp_server_setup:
+    requires:
+      - "environment_check"
+      - "authentication_setup"
+    provides:
+      - "configured_server"
+    state_changes:
+      - "system_environment"
+      - "configuration_files"
+  
+  mcp_server_operation:
+    requires:
+      - "configured_server"
+    provides:
+      - "operational_server"
+    state_changes:
+      - "server_status"
+      - "operation_logs"
+
+# 検証フレームワーク設定
+validation_framework:
+  prerequisites:
+    enabled: true
+    strict_mode: true
+    auto_recovery: false
+  
+  post_checks:
+    enabled: true
+    fail_on_error: true
+    generate_report: true
+
+# エラーハンドリング設定
+error_handling:
+  retry_attempts: 3
+  logging_level: "detailed"
+  auto_recovery:
+    enabled: true
+    max_attempts: 2
+    require_confirmation: true
+
+# AIエージェント特有の設定
+ai_agent_settings:
+  context_preservation:
+    enabled: true
+    scope:
+      - "global"
+      - "process"
+      - "error_patterns"
+  
+  learning_patterns:
+    collect_success_patterns: true
+    collect_error_patterns: true
+    pattern_storage: "memory"
+  
+  decision_points:
+    validation_required: true
+    confirmation_required: false
+    error_threshold: 3
+
+# ドキュメント生成設定
+documentation:
+  auto_generate: true
+  formats:
+    - "markdown"
+    - "yaml"
+  templates:
+    process: "templates/process/base_template.md"
+    validation: "templates/validation/base_template.md"
+    error: "templates/error/base_template.md"
+
+# 監視設定
+monitoring:
+  collect_metrics: true
+  metrics:
+    - "process_duration"
+    - "error_count"
+    - "success_rate"
+  alerts:
+    error_threshold: 5
+    duration_threshold: 3600
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン"
+    author: "Cline AI"
