@@ -101,21 +101,34 @@ Cline/
 ├── tsconfig.json         # TypeScript設定
 ├── .eslintrc.json        # ESLint設定
 ├── .prettierrc           # Prettier設定
-├── docs/                # ドキュメント
+├── docs/                 # ドキュメント
 │   ├── PROJECT_CONTEXT.md  # プロジェクト全体の文脈情報
-│   ├── HANDOVER.md     # 引継ぎ文書
-│   └── archive/        # 引継ぎ文書アーカイブ
-├── tests/              # テストディレクトリ
-│   ├── unit/          # ユニットテスト
-│   └── integration/   # 統合テスト（予定）
-├── extensions/         # 拡張機能ディレクトリ
-│   ├── core/          # コア拡張機能
+│   ├── HANDOVER.md        # 引継ぎ文書
+│   └── archive/           # 引継ぎ文書アーカイブ
+├── standards/            # 作業標準設計
+│   ├── _meta/            # メタ情報
+│   │   ├── schemas/      # スキーマ定義
+│   │   └── contexts/     # コンテキスト定義
+│   ├── processes/        # プロセス定義
+│   │   ├── _base/       # 基本プロセス
+│   │   └── mcp/         # MCPサーバー関連
+│   ├── validations/      # 検証フレームワーク
+│   │   └── prerequisites/ # 前提条件チェック
+│   └── templates/        # 各種テンプレート
+│       ├── process/      # プロセス用
+│       ├── validation/   # 検証用
+│       └── documentation/ # ドキュメント用
+├── tests/               # テストディレクトリ
+│   ├── unit/           # ユニットテスト
+│   └── integration/    # 統合テスト（予定）
+├── extensions/          # 拡張機能ディレクトリ
+│   ├── core/           # コア拡張機能
 │   │   └── environment-checker/  # 環境互換性チェッカー
-│   ├── mcp/           # MCPサーバー
-│   ├── configs/       # 設定ファイル
-│   └── prompts/       # カスタムプロンプト
-└── .github/           # GitHub設定
-    └── workflows/     # GitHub Actions設定
+│   ├── mcp/            # MCPサーバー
+│   ├── configs/        # 設定ファイル
+│   └── prompts/        # カスタムプロンプト
+└── .github/            # GitHub設定
+    └── workflows/      # GitHub Actions設定
 ```
 
 ## MCPサーバー

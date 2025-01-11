@@ -1,0 +1,128 @@
+---
+# 環境チェック検証定義
+version: "1.0.0"
+last_updated: "2025-01-11"
+type: "prerequisites"
+
+checks:
+  system_requirements:
+    description: "システム要件の検証"
+    conditions:
+      - name: "node_version"
+        check: "process.version"
+        operator: "semver_gte"
+        expected: "18.0.0"
+        message: "Node.js v18.0.0以上が必要です"
+        severity: "critical"
+
+      - name: "python_version"
+        check: "python.version"
+        operator: "semver_gte"
+        expected: "3.8.0"
+        message: "Python 3.8.0以上が必要です"
+        severity: "critical"
+
+      - name: "memory_available"
+        check: "system.memory.available"
+        operator: "gte"
+        expected: 2048
+        message: "最低2GB以上のメモリが必要です"
+        severity: "warning"
+
+  environment_variables:
+    description: "必要な環境変数の検証"
+    conditions:
+      - name: "mcp_home"
+        check: "env.MCP_HOME"
+        operator: "exists"
+        message: "MCP_HOME環境変数が設定されていません"
+        severity: "critical"
+
+      - name: "config_path"
+        check: "env.MCP_CONFIG_PATH"
+        operator: "exists"
+        message: "MCP_CONFIG_PATH環境変数が設定されていません"
+        severity: "critical"
+
+  file_permissions:
+    description: "ファイルアクセス権限の検証"
+    conditions:
+      - name: "config_dir_writable"
+        check: "fs.access"
+        params:
+          path: "${MCP_CONFIG_PATH}"
+          mode: "write"
+        message: "設定ディレクトリへの書き込み権限がありません"
+        severity: "critical"
+
+      - name: "data_dir_writable"
+        check: "fs.access"
+        params:
+          path: "${MCP_HOME}/data"
+          mode: "write"
+        message: "データディレクトリへの書き込み権限がありません"
+        severity: "critical"
+
+error_handling:
+  retry_enabled: true
+  max_retries: 1
+  retry_delay: 1000
+  fallback_action: "report_and_exit"
+
+actions:
+  on_success:
+    - type: "log"
+      level: "info"
+      message: "環境チェックが正常に完了しました"
+
+  on_warning:
+    - type: "log"
+      level: "warn"
+      message: "環境に関する警告があります"
+    - type: "notify"
+      channel: "admin"
+      message: "環境チェックで警告が発生しました"
+
+  on_failure:
+    - type: "log"
+      level: "error"
+      message: "環境チェックが失敗しました"
+    - type: "abort"
+      message: "必要な環境要件を満たしていません"
+
+reporting:
+  format: "json"
+  include_context: true
+  notify_on:
+    - failure
+    - warning
+
+documentation:
+  description: |
+    このバリデーションは、MCPサーバーの実行に必要な環境要件を検証します。
+    主に以下の項目をチェックします：
+    - システム要件（Node.js、Pythonバージョン、メモリ）
+    - 必要な環境変数の存在
+    - ファイルシステムの権限
+  
+  examples:
+    success_case: |
+      {
+        "status": "success",
+        "message": "環境チェックが正常に完了しました",
+        "details": {
+          "node_version": "v18.15.0",
+          "python_version": "3.9.5",
+          "memory_available": 4096
+        }
+      }
+    
+    failure_case: |
+      {
+        "status": "failure",
+        "message": "Node.js v18.0.0以上が必要です",
+        "details": {
+          "node_version": "v16.13.0",
+          "error": "version_mismatch"
+        }
+      }

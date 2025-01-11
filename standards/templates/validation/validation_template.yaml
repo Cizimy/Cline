@@ -1,0 +1,95 @@
+---
+# 検証定義テンプレート
+version: "[バージョン番号]"
+last_updated: "[YYYY-MM-DD]"
+type: "[検証タイプ]"  # prerequisites, runtime, completion
+
+# 検証の基本情報
+name: "[検証名]"
+description: |
+  [検証の目的と概要を記述]
+
+# 検証条件の定義
+checks:
+  [検証グループ名]:
+    description: "[このグループの検証内容]"
+    conditions:
+      - name: "[条件名]"
+        check: "[チェック方法]"
+        operator: "[比較演算子]"
+        expected: "[期待値]"
+        message: "[エラーメッセージ]"
+        severity: "[重要度]"  # critical, warning, info
+
+      # 追加の条件をここに記述
+      # - name: "condition2"
+      #   ...
+
+# エラーハンドリングの設定
+error_handling:
+  retry_enabled: [true/false]
+  max_retries: [最大リトライ回数]
+  retry_delay: [リトライ間隔(ミリ秒)]
+  fallback_action: "[失敗時のアクション]"
+
+# 実行時のアクション定義
+actions:
+  on_success:
+    - type: "[アクションタイプ]"
+      level: "[ログレベル]"
+      message: "[成功メッセージ]"
+
+  on_warning:
+    - type: "[アクションタイプ]"
+      level: "[ログレベル]"
+      message: "[警告メッセージ]"
+
+  on_failure:
+    - type: "[アクションタイプ]"
+      level: "[ログレベル]"
+      message: "[失敗メッセージ]"
+
+# レポート設定
+reporting:
+  format: "[レポート形式]"  # json, yaml, markdown
+  include_context: [true/false]
+  notify_on:
+    - failure
+    - warning
+
+# ドキュメント
+documentation:
+  description: |
+    [詳細な説明をここに記述]
+    - 使用目的
+    - 検証の範囲
+    - 重要な注意事項
+  
+  examples:
+    success_case: |
+      [成功時のレスポンス例]
+    
+    failure_case: |
+      [失敗時のレスポンス例]
+
+# カスタム拡張設定（オプション）
+custom_settings:
+  [カスタム設定キー]: [値]
+  # 追加のカスタム設定をここに記述
+
+# 依存関係（オプション）
+dependencies:
+  required_validators:
+    - "[依存する検証1]"
+    - "[依存する検証2]"
+  
+  required_contexts:
+    - "[必要なコンテキスト1]"
+    - "[必要なコンテキスト2]"
+
+# メトリクス定義（オプション）
+metrics:
+  - name: "[メトリクス名]"
+    type: "[メトリクスタイプ]"
+    description: "[メトリクスの説明]"
+    unit: "[単位]"

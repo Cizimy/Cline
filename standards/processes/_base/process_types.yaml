@@ -1,0 +1,46 @@
+---
+# 基本プロセスタイプの定義
+process_types:
+  setup:
+    description: "環境構築・初期設定プロセス"
+    required_contexts:
+      - global
+      - environment
+    validation_rules:
+      - prerequisites_check
+      - environment_check
+      - completion_check
+
+  maintenance:
+    description: "保守・運用プロセス"
+    required_contexts:
+      - global
+      - system_state
+    validation_rules:
+      - system_check
+      - integrity_check
+
+  development:
+    description: "開発プロセス"
+    required_contexts:
+      - global
+      - development
+    validation_rules:
+      - code_quality_check
+      - test_coverage_check
+
+  deployment:
+    description: "デプロイメントプロセス"
+    required_contexts:
+      - global
+      - deployment
+    validation_rules:
+      - security_check
+      - deployment_check
+
+common_attributes:
+  version: "1.0.0"
+  last_updated: "2025-01-11"
+  maintainer: "Cline AI"
+  validation_framework: "standards/validations"
+  documentation_template: "standards/templates/process"

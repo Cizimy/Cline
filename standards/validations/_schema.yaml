@@ -1,0 +1,107 @@
+---
+# 検証フレームワークの基本スキーマ
+version: "1.0.0"
+last_updated: "2025-01-11"
+
+validation_types:
+  prerequisites:
+    description: "前提条件の検証"
+    timing: "pre-execution"
+    severity_levels:
+      - critical
+      - warning
+      - info
+    required_contexts:
+      - environment
+      - system_state
+
+  runtime:
+    description: "実行時の検証"
+    timing: "during-execution"
+    severity_levels:
+      - error
+      - warning
+      - info
+    required_contexts:
+      - process_state
+      - runtime_metrics
+
+  completion:
+    description: "完了条件の検証"
+    timing: "post-execution"
+    severity_levels:
+      - success
+      - partial
+      - failure
+    required_contexts:
+      - process_result
+      - system_state
+
+common_attributes:
+  result_format:
+    status: string  # success, warning, failure
+    message: string
+    details: object
+    timestamp: datetime
+    context: object
+
+  error_handling:
+    retry_enabled: boolean
+    max_retries: number
+    retry_delay: number
+    fallback_action: string
+
+validation_rules:
+  format:
+    name: string
+    description: string
+    type: string
+    severity: string
+    conditions: array
+    actions: array
+    error_handling: object
+
+  conditions:
+    format:
+      check: string
+      expected: any
+      operator: string
+      custom_validator: string
+
+  actions:
+    format:
+      type: string  # log, alert, abort, retry
+      params: object
+      timeout: number
+
+reporting:
+  formats:
+    - json
+    - yaml
+    - markdown
+  
+  required_fields:
+    - validation_name
+    - timestamp
+    - status
+    - details
+    - context
+
+  aggregation_rules:
+    group_by:
+      - validation_type
+      - severity
+      - status
+    metrics:
+      - success_rate
+      - failure_count
+      - average_duration
+
+documentation:
+  template_path: "templates/validation/validation_doc_template.md"
+  required_sections:
+    - overview
+    - prerequisites
+    - validation_rules
+    - error_handling
+    - examples
