@@ -1,6 +1,6 @@
 # 検証フレームワークスキーマ定義
 
-version: "1.0.0"
+version: "1.1.0"
 type: "validation_schema"
 
 # 検証タイプの定義
@@ -13,10 +13,13 @@ validation_types:
         description: "チェック項目のリスト"
       - name: "severity"
         type: "string"
-        enum: ["critical", "warning", "info"]
+        enum: ["critical", "error", "warning", "info"]
       - name: "recovery_action"
         type: "string"
         description: "失敗時の回復手順"
+      - name: "dependencies"
+        type: "array"
+        description: "前提条件の依存関係"
   
   process:
     description: "プロセス実行中の検証"
@@ -30,6 +33,25 @@ validation_types:
       - name: "timeout"
         type: "number"
         description: "タイムアウト時間（秒）"
+      - name: "async_config"
+        type: "object"
+        description: "非同期検証の設定"
+        properties:
+          - name: "queue_config"
+            type: "object"
+            description: "キュー設定の検証"
+          - name: "polling_interval"
+            type: "number"
+            description: "ポーリング間隔（秒）"
+          - name: "max_retries"
+            type: "number"
+            description: "最大リトライ回数"
+          - name: "concurrent_validations"
+            type: "boolean"
+            description: "並行検証の有効化"
+          - name: "checkpoints"
+            type: "array"
+            description: "チェックポイントの検証"
   
   completion:
     description: "完了条件の検証"
@@ -43,6 +65,42 @@ validation_types:
       - name: "quality_gates"
         type: "array"
         description: "品質基準のリスト"
+      - name: "rollback_verification"
+        type: "object"
+        description: "ロールバック後の検証"
+        properties:
+          - name: "trigger_conditions"
+            type: "array"
+            description: "ロールバックのトリガー条件"
+          - name: "verification_steps"
+            type: "array"
+            description: "ロールバック後の検証手順"
+          - name: "notification_config"
+            type: "object"
+            description: "通知設定"
+
+  mcp_server:
+    description: "MCPサーバー関連の検証"
+    required_fields:
+      - name: "server_type"
+        type: "string"
+        description: "サーバータイプ"
+        enum: ["python", "node", "custom"]
+      - name: "auth_validation"
+        type: "object"
+        description: "認証情報の検証"
+      - name: "health_check"
+        type: "object"
+        description: "サーバーの健全性チェック"
+      - name: "api_endpoints"
+        type: "array"
+        description: "APIエンドポイントの検証"
+      - name: "scaling_config"
+        type: "object"
+        description: "スケーリング設定の検証"
+      - name: "inter_server_deps"
+        type: "array"
+        description: "サーバー間の依存関係"
 
 # 検証結果の定義
 result_schema:
@@ -50,7 +108,7 @@ result_schema:
   required_fields:
     - name: "status"
       type: "string"
-      enum: ["passed", "failed", "warning"]
+      enum: ["pending", "running", "completed", "failed", "cancelled"]
     - name: "details"
       type: "object"
       properties:
@@ -60,9 +118,28 @@ result_schema:
           type: "string"
         - name: "timestamp"
           type: "string"
+        - name: "trace_id"
+          type: "string"
+          description: "トレーシングID"
     - name: "metrics"
       type: "object"
       description: "検証に関する測定値"
+    - name: "async_state"
+      type: "object"
+      description: "非同期検証の状態"
+      properties:
+        - name: "progress"
+          type: "object"
+          description: "進捗情報"
+        - name: "checkpoints"
+          type: "array"
+          description: "チェックポイント"
+        - name: "error_state"
+          type: "object"
+          description: "エラー状態"
+        - name: "recovery_point"
+          type: "object"
+          description: "リカバリーポイント"
 
 # 検証ルールの定義
 rule_schema:
@@ -76,10 +153,29 @@ rule_schema:
       description: "期待値"
     - name: "operator"
       type: "string"
-      enum: ["equals", "not_equals", "greater_than", "less_than", "contains", "not_contains"]
+      enum: ["equals", "not_equals", "greater_than", "less_than", "contains", "not_contains", "regex_match"]
     - name: "error_message"
       type: "string"
       description: "エラー時のメッセージ"
+    - name: "validation_type"
+      type: "string"
+      description: "検証タイプ（同期/非同期）"
+    - name: "ipc_validation"
+      type: "object"
+      description: "プロセス間通信の検証"
+      properties:
+        - name: "communication_type"
+          type: "string"
+          enum: ["event", "message", "stream", "shared_memory"]
+        - name: "message_format"
+          type: "object"
+          description: "メッセージフォーマット検証"
+        - name: "routing"
+          type: "object"
+          description: "ルーティング検証"
+        - name: "qos"
+          type: "object"
+          description: "品質検証"
 
 # 回復手順の定義
 recovery_schema:
@@ -94,6 +190,15 @@ recovery_schema:
     - name: "max_attempts"
       type: "number"
       description: "最大試行回数"
+    - name: "rollback_steps"
+      type: "array"
+      description: "ロールバック手順"
+    - name: "cleanup_actions"
+      type: "array"
+      description: "クリーンアップ処理"
+    - name: "notification"
+      type: "object"
+      description: "通知設定"
 
 # レポート生成の定義
 report_schema:
@@ -111,6 +216,9 @@ report_schema:
     - name: "recommendations"
       type: "array"
       description: "改善提案"
+    - name: "error_analysis"
+      type: "object"
+      description: "エラー分析結果"
 
 # メトリクスの定義
 metrics_schema:
@@ -125,9 +233,24 @@ metrics_schema:
     - name: "error_count"
       type: "number"
       description: "エラー数"
+    - name: "resource_usage"
+      type: "object"
+      description: "リソース使用状況"
+    - name: "performance_metrics"
+      type: "object"
+      description: "パフォーマンス指標"
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "process_schema.yamlとの整合性確保、MCPサーバー対応の強化"
+    changes:
+      - "server_typeのenum値の同期"
+      - "非同期状態管理の詳細化"
+      - "プロセス間通信の検証強化"
+      - "エラー重要度の統一"
+    author: "Cline AI"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"
