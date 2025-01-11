@@ -26,37 +26,9 @@ execution_environment:
         description: "デバッグモードの設定"
         default: "false"
 
-# AIエージェント設定
+# AIエージェント設定の参照
 ai_agent_configuration:
-  context_preservation:
-    enabled: true
-    scope:
-      - "global"
-      - "process"
-      - "error_patterns"
-    storage:
-      type: "memory"
-      persistence: true
-  
-  learning_patterns:
-    collect_success_patterns: true
-    collect_error_patterns: true
-    pattern_storage: "memory"
-    analysis:
-      enabled: true
-      frequency: "on_completion"
-  
-  decision_making:
-    validation_required: true
-    confirmation_required: false
-    error_threshold: 3
-    checkpoints:
-      - phase: "initialization"
-        required: true
-      - phase: "execution"
-        required: true
-      - phase: "completion"
-        required: true
+  reference: "global_context.ai_agent_settings"
 
 # 実行フェーズ定義
 execution_phases:
@@ -237,37 +209,16 @@ process_interaction:
       enabled: true
       retention_period: 86400
 
-# モニタリング設定
+# モニタリング設定の参照
 monitoring_configuration:
-  metrics_collection:
-    enabled: true
-    interval: 60
-    metrics:
-      - name: "process_duration"
-        type: "gauge"
-        description: "プロセス実行時間"
-        threshold: 3600
-      - name: "error_count"
-        type: "counter"
-        description: "エラー発生回数"
-        threshold: 5
-      - name: "success_rate"
-        type: "gauge"
-        description: "成功率"
-        threshold: 0.95
-  
-  alerting:
-    enabled: true
-    thresholds:
-      error_count: 5
-      duration: 3600
-      memory_usage: 1024
-    notification:
-      channels:
-        - type: "log"
-          level: "error"
-        - type: "system"
-          level: "critical"
+  reference: "global_context.monitoring_settings"
+  process_specific_metrics:
+    - name: "preparation_duration"
+      type: "gauge"
+      description: "準備フェーズの実行時間"
+    - name: "check_success_rate"
+      type: "gauge"
+      description: "チェック成功率"
 
 # 更新履歴
 history:

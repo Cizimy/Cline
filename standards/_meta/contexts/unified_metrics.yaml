@@ -1,0 +1,193 @@
+# 統一メトリクス定義
+version: "1.0.0"
+type: "unified_metrics"
+
+# 基本メトリクス定義
+base_metrics:
+  system:
+    cpu_usage:
+      type: "gauge"
+      description: "CPU使用率（%）"
+      threshold:
+        critical: 80
+        warning: 70
+        info: 60
+      unit: "percent"
+      
+    memory_usage:
+      type: "gauge"
+      description: "メモリ使用率（%）"
+      threshold:
+        critical: 90
+        warning: 80
+        info: 70
+      unit: "percent"
+      
+    disk_usage:
+      type: "gauge"
+      description: "ディスク使用率（%）"
+      threshold:
+        critical: 85
+        warning: 75
+        info: 65
+      unit: "percent"
+
+  performance:
+    response_time:
+      type: "histogram"
+      description: "応答時間"
+      threshold:
+        critical: 1000  # ms
+        warning: 500
+        info: 200
+      unit: "milliseconds"
+      
+    throughput:
+      type: "rate"
+      description: "スループット"
+      threshold:
+        critical: 1000  # req/s
+        warning: 800
+        info: 500
+      unit: "requests_per_second"
+      
+    error_rate:
+      type: "rate"
+      description: "エラー率"
+      threshold:
+        critical: 0.01  # 1%
+        warning: 0.005
+        info: 0.001
+      unit: "percent"
+
+  resource:
+    connection_count:
+      type: "gauge"
+      description: "接続数"
+      threshold:
+        critical: 1000
+        warning: 800
+        info: 500
+      unit: "connections"
+      
+    queue_length:
+      type: "gauge"
+      description: "キュー長"
+      threshold:
+        critical: 1000
+        warning: 800
+        info: 500
+      unit: "messages"
+
+# アラート定義
+alert_policies:
+  critical:
+    description: "即時対応（15分以内）"
+    notification:
+      channels: ["slack", "email", "sms"]
+      retry_interval: 5  # minutes
+      escalation_after: 10  # minutes
+    auto_recovery:
+      enabled: true
+      max_retries: 2
+      retry_interval: 1  # minutes
+      backoff_multiplier: 1.5
+
+  warning:
+    description: "1時間以内の対応"
+    notification:
+      channels: ["slack", "email"]
+      retry_interval: 15
+      escalation_after: 30
+    auto_recovery:
+      enabled: true
+      max_retries: 3
+      retry_interval: 5
+      backoff_multiplier: 1.5
+
+  info:
+    description: "24時間以内の対応"
+    notification:
+      channels: ["slack"]
+      retry_interval: 60
+    auto_recovery:
+      enabled: true
+      max_retries: 5
+      retry_interval: 15
+      backoff_multiplier: 1.5
+
+# レポート形式
+report_format:
+  metrics:
+    timestamp:
+      type: "string"
+      format: "date-time"
+      required: true
+    
+    metric_name:
+      type: "string"
+      required: true
+    
+    value:
+      type: "number"
+      required: true
+    
+    unit:
+      type: "string"
+      required: true
+    
+    threshold_level:
+      type: "string"
+      enum: ["critical", "warning", "info", "normal"]
+      required: true
+    
+    labels:
+      type: "object"
+      required: false
+      properties:
+        service:
+          type: "string"
+        environment:
+          type: "string"
+        component:
+          type: "string"
+
+  aggregation:
+    time_window:
+      type: "string"
+      enum: ["1m", "5m", "15m", "1h", "6h", "24h"]
+    
+    functions:
+      - "avg"
+      - "max"
+      - "min"
+      - "sum"
+      - "count"
+      - "p95"
+      - "p99"
+
+# 保存設定
+storage_config:
+  metrics:
+    type: "database"
+    retention:
+      raw_data: "7d"
+      aggregated_data: "90d"
+    
+  alerts:
+    type: "database"
+    retention:
+      active_alerts: "30d"
+      alert_history: "180d"
+    
+  reports:
+    type: "file"
+    format: "yaml"
+    retention: "365d"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "統一メトリクス定義の初期バージョン"
+    author: "Cline AI"

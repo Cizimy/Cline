@@ -1,0 +1,228 @@
+# 非同期ストレージパターン定義
+version: "1.0.0"
+type: "async_storage_patterns"
+
+# チェックポイントストレージパターン
+checkpoint_storage:
+  patterns:
+    file_based:
+      type: "persistent"
+      description: "ファイルベースの長期保存用ストレージ"
+      implementation:
+        storage_type: "filesystem"
+        server: "filesystem"
+        config:
+          base_path: "checkpoints/"
+          format: "yaml"
+          retention:
+            enabled: true
+            days: 30
+      use_cases:
+        - "長期的なチェックポイントの保存"
+        - "システム再起動後の状態復元"
+        - "監査ログの保持"
+      limitations:
+        - "I/O性能への依存"
+        - "分散システムでの同期の複雑さ"
+
+    memory_based:
+      type: "temporary"
+      description: "メモリベースの一時的ストレージ"
+      implementation:
+        storage_type: "memory"
+        server: "memory"
+        config:
+          expiration: 3600  # 1時間
+          max_size: "100MB"
+      use_cases:
+        - "高頻度な一時的チェックポイント"
+        - "パフォーマンス重視のケース"
+        - "セッション中のみの状態保持"
+      limitations:
+        - "永続性なし"
+        - "メモリ容量の制限"
+        - "サーバー再起動で消失"
+
+    database_based:
+      type: "persistent"
+      description: "データベースベースの大規模システム用ストレージ"
+      implementation:
+        storage_type: "database"
+        servers: ["postgres", "sqlite"]
+        config:
+          table_name: "checkpoints"
+          indexes: ["task_id", "timestamp"]
+          partitioning:
+            enabled: true
+            strategy: "range"
+            column: "timestamp"
+          cleanup:
+            enabled: true
+            retention_days: 90
+      use_cases:
+        - "大規模システムでのチェックポイント管理"
+        - "複雑なクエリが必要なケース"
+        - "トランザクション整合性が重要なケース"
+      limitations:
+        - "セットアップの複雑さ"
+        - "リソース要件が高い"
+        - "コストが比較的高い"
+
+# パターンストレージ定義
+pattern_storage:
+  memory:
+    type: "temporary"
+    description: "メモリ内パターン保存"
+    implementation:
+      server: "memory"
+      config:
+        collection: "patterns"
+        indexing:
+          enabled: true
+          fields: ["pattern_type", "frequency"]
+    use_cases:
+      - "頻繁にアクセスされるパターン"
+      - "一時的なパターン分析"
+    metrics:
+      - name: "pattern_hit_rate"
+        type: "gauge"
+        description: "パターンのヒット率"
+      - name: "pattern_update_frequency"
+        type: "counter"
+        description: "パターン更新頻度"
+
+  file:
+    type: "persistent"
+    description: "ファイルベースのパターン保存"
+    implementation:
+      server: "filesystem"
+      config:
+        base_path: "patterns/"
+        format: "yaml"
+        versioning: true
+    use_cases:
+      - "長期的なパターン分析"
+      - "パターン履歴の追跡"
+    metrics:
+      - name: "pattern_file_size"
+        type: "gauge"
+        description: "パターンファイルのサイズ"
+      - name: "pattern_read_latency"
+        type: "histogram"
+        description: "パターン読み取り遅延"
+
+  database:
+    type: "persistent"
+    description: "データベースベースのパターン保存"
+    implementation:
+      servers: ["postgres", "sqlite"]
+      config:
+        table_name: "patterns"
+        indexes: ["pattern_type", "created_at"]
+        analytics:
+          enabled: true
+          aggregations: ["frequency", "effectiveness"]
+    use_cases:
+      - "複雑なパターン分析"
+      - "パターン間の関係性分析"
+    metrics:
+      - name: "pattern_query_time"
+        type: "histogram"
+        description: "パターンクエリ時間"
+      - name: "pattern_storage_size"
+        type: "gauge"
+        description: "パターンストレージサイズ"
+
+# 進捗追跡の標準フォーマット
+progress_tracking:
+  format:
+    version: "1.0.0"
+    fields:
+      task_id:
+        type: "string"
+        required: true
+        description: "タスクの一意識別子"
+      
+      status:
+        type: "string"
+        required: true
+        enum:
+          - "not_started"
+          - "in_progress"
+          - "completed"
+          - "failed"
+          - "paused"
+        description: "タスクの現在の状態"
+      
+      progress:
+        type: "number"
+        required: true
+        min: 0
+        max: 100
+        description: "完了率（パーセント）"
+      
+      checkpoint:
+        type: "object"
+        required: true
+        properties:
+          id:
+            type: "string"
+            description: "チェックポイントの一意識別子"
+          timestamp:
+            type: "string"
+            format: "date-time"
+            description: "チェックポイント作成時刻"
+          data:
+            type: "object"
+            description: "チェックポイントデータ"
+      
+      metadata:
+        type: "object"
+        required: false
+        properties:
+          started_at:
+            type: "string"
+            format: "date-time"
+          updated_at:
+            type: "string"
+            format: "date-time"
+          estimated_completion:
+            type: "string"
+            format: "date-time"
+          dependencies:
+            type: "array"
+            items:
+              type: "string"
+          tags:
+            type: "array"
+            items:
+              type: "string"
+
+  validation:
+    rules:
+      - "progress値は常に0-100の範囲内"
+      - "timestamp形式はISO 8601に準拠"
+      - "task_idは一意であること"
+      - "statusは定義された列挙値のみ"
+    
+  persistence:
+    strategy:
+      type: "hybrid"
+      description: "ストレージ戦略の動的選択"
+      selection_criteria:
+        - factor: "data_size"
+          threshold: "1MB"
+          storage: "database"
+        - factor: "update_frequency"
+          threshold: "10/second"
+          storage: "memory"
+        - factor: "retention_required"
+          threshold: "30days"
+          storage: "file"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン - 非同期ストレージパターンの標準化"
+    author: "Cline AI"

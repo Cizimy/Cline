@@ -1,13 +1,13 @@
 # AIエージェント指向の作業標準設計 - メタ情報定義
 
-version: "1.0.0"
+version: "1.1.0"
 
 # グローバル設定
 global:
   project_name: "Cline Custom Extensions"
   base_directory: "standards"
   default_language: "ja"
-  schema_version: "1.0.0"
+  schema_version: "1.1.0"
 
 # コンテキスト定義
 contexts:
@@ -124,6 +124,16 @@ monitoring:
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "MCPサーバー対応と非同期処理の強化"
+    author: "Cline AI"
+    changes:
+      - "バージョン番号を1.1.0に統一"
+      - "MCPサーバー管理用プロセスタイプの追加"
+      - "非同期プロセスタイプの追加"
+      - "プロセス間依存関係の詳細化"
+      - "非同期状態管理の追加"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"

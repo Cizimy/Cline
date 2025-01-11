@@ -48,27 +48,7 @@ server_definition:
             type: "array"
             required: false
             description: "スケーリングメトリクス（オプショナル）"
-            items:
-              type: "object"
-              required: false
-              properties:
-                name:
-                  type: "string"
-                  enum: ["cpu_usage", "memory_usage", "request_count"]
-                threshold:
-                  type: "number"
-                description:
-                  type: "string"
-            default:
-              - name: "cpu_usage"
-                threshold: 80
-                description: "CPU使用率（%）"
-              - name: "memory_usage"
-                threshold: 1024
-                description: "メモリ使用量（MB）"
-              - name: "request_count"
-                threshold: 1000
-                description: "リクエスト数/分"
+            reference: "unified_metrics.yaml#base_metrics"
 
 # 必要な知識ベース
 required_knowledge:
@@ -174,61 +154,19 @@ ipc_configuration:
       protocol: "AMQP"
       reliability: "at_least_once"
       metrics:
-        - name: "queue_length"
-          type: "gauge"
-          description: "メッセージキューの長さ"
-          threshold: 1000
-          alert_level: "warning"
-        - name: "processing_time"
-          type: "histogram"
-          description: "メッセージ処理時間（ms）"
-          threshold: 500
-          alert_level: "warning"
-        - name: "error_rate"
-          type: "rate"
-          description: "メッセージ処理エラー率"
-          threshold: 0.01
-          alert_level: "critical"
+        reference: "unified_metrics.yaml#base_metrics.resource"
 
     - type: "shared_memory"
       access_mode: "read_write"
       sync_mechanism: "mutex"
       metrics:
-        - name: "memory_usage"
-          type: "gauge"
-          description: "共有メモリ使用率"
-          threshold: 80
-          alert_level: "warning"
-        - name: "lock_contention"
-          type: "counter"
-          description: "ロック競合回数"
-          threshold: 100
-          alert_level: "warning"
-        - name: "access_latency"
-          type: "histogram"
-          description: "メモリアクセス遅延（μs）"
-          threshold: 1000
-          alert_level: "warning"
+        reference: "unified_metrics.yaml#base_metrics.system"
 
     - type: "socket"
       protocol: "TCP"
       encryption: true
       metrics:
-        - name: "connection_count"
-          type: "gauge"
-          description: "アクティブな接続数"
-          threshold: 1000
-          alert_level: "warning"
-        - name: "bandwidth_usage"
-          type: "gauge"
-          description: "帯域幅使用率"
-          threshold: 80
-          alert_level: "warning"
-        - name: "packet_loss"
-          type: "rate"
-          description: "パケット損失率"
-          threshold: 0.001
-          alert_level: "critical"
+        reference: "unified_metrics.yaml#base_metrics.performance"
   
   message_patterns:
     - pattern: "request_response"
@@ -418,12 +356,7 @@ error_patterns:
 monitoring_configuration:
   reference: "global_context.monitoring_settings"
   server_specific_metrics:
-    - name: "api_response_time"
-      type: "gauge"
-      description: "APIレスポンス時間"
-    - name: "active_connections"
-      type: "gauge"
-      description: "アクティブな接続数"
+    reference: "unified_metrics.yaml#base_metrics.performance"
 
 # 学習パターンの参照
 learning_patterns:
