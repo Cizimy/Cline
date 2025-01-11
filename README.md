@@ -108,6 +108,10 @@ Cline/
 ├── standards/            # 作業標準設計
 │   ├── _meta/            # メタ情報
 │   │   ├── schemas/      # スキーマ定義
+│   │   │   ├── process_schema.yaml    # プロセス定義スキーマ
+│   │   │   ├── validation_schema.yaml # 検証定義スキーマ
+│   │   │   ├── context_schema.yaml    # コンテキスト定義スキーマ
+│   │   │   └── error_schema.yaml      # エラーパターン定義スキーマ
 │   │   └── contexts/     # コンテキスト定義
 │   ├── processes/        # プロセス定義
 │   │   ├── _base/       # 基本プロセス
