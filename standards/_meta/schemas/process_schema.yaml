@@ -1,0 +1,160 @@
+# プロセス定義スキーマ
+
+version: "1.0.0"
+type: "process_schema"
+
+# プロセスタイプの定義
+process_types:
+  setup:
+    description: "環境セットアップ用プロセス"
+    required_fields:
+      - name: "prerequisites"
+        type: "array"
+        description: "前提条件のリスト"
+      - name: "environment_vars"
+        type: "object"
+        description: "必要な環境変数"
+      - name: "dependencies"
+        type: "array"
+        description: "依存関係のリスト"
+  
+  development:
+    description: "開発作業用プロセス"
+    required_fields:
+      - name: "source_control"
+        type: "object"
+        description: "ソース管理情報"
+      - name: "build_steps"
+        type: "array"
+        description: "ビルド手順"
+      - name: "test_requirements"
+        type: "array"
+        description: "テスト要件"
+  
+  deployment:
+    description: "デプロイメント用プロセス"
+    required_fields:
+      - name: "target_environment"
+        type: "string"
+        description: "デプロイ先環境"
+      - name: "deployment_steps"
+        type: "array"
+        description: "デプロイ手順"
+      - name: "rollback_plan"
+        type: "object"
+        description: "ロールバック計画"
+
+# 入力パラメータの定義
+parameter_schema:
+  type: "object"
+  required_fields:
+    - name: "name"
+      type: "string"
+      description: "パラメータ名"
+    - name: "type"
+      type: "string"
+      enum: ["string", "number", "boolean", "array", "object"]
+    - name: "required"
+      type: "boolean"
+      description: "必須かどうか"
+    - name: "default"
+      type: "any"
+      description: "デフォルト値"
+    - name: "validation"
+      type: "object"
+      description: "入力値の検証ルール"
+
+# 実行ステップの定義
+step_schema:
+  type: "object"
+  required_fields:
+    - name: "name"
+      type: "string"
+      description: "ステップ名"
+    - name: "description"
+      type: "string"
+      description: "ステップの説明"
+    - name: "action"
+      type: "object"
+      description: "実行するアクション"
+    - name: "validation"
+      type: "object"
+      description: "ステップの検証方法"
+    - name: "retry_policy"
+      type: "object"
+      description: "リトライポリシー"
+
+# 成果物の定義
+artifact_schema:
+  type: "object"
+  required_fields:
+    - name: "type"
+      type: "string"
+      enum: ["file", "directory", "package", "image", "configuration"]
+    - name: "location"
+      type: "string"
+      description: "成果物の保存場所"
+    - name: "validation"
+      type: "object"
+      description: "成果物の検証方法"
+    - name: "retention"
+      type: "object"
+      description: "保持ポリシー"
+
+# エラーハンドリングの定義
+error_handling_schema:
+  type: "object"
+  required_fields:
+    - name: "error_type"
+      type: "string"
+      description: "エラーの種類"
+    - name: "severity"
+      type: "string"
+      enum: ["critical", "error", "warning", "info"]
+    - name: "recovery_steps"
+      type: "array"
+      description: "回復手順"
+    - name: "notification"
+      type: "object"
+      description: "通知設定"
+
+# プロセス実行コンテキストの定義
+context_schema:
+  type: "object"
+  required_fields:
+    - name: "environment"
+      type: "object"
+      description: "実行環境情報"
+    - name: "user"
+      type: "object"
+      description: "実行ユーザー情報"
+    - name: "permissions"
+      type: "array"
+      description: "必要な権限"
+    - name: "resources"
+      type: "object"
+      description: "必要なリソース"
+
+# メトリクスの定義
+metrics_schema:
+  type: "object"
+  required_fields:
+    - name: "execution_time"
+      type: "number"
+      description: "実行時間"
+    - name: "resource_usage"
+      type: "object"
+      description: "リソース使用量"
+    - name: "success_rate"
+      type: "number"
+      description: "成功率"
+    - name: "error_count"
+      type: "number"
+      description: "エラー数"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン"
+    author: "Cline AI"

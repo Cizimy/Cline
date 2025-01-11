@@ -1,0 +1,153 @@
+# エラー定義スキーマ
+
+version: "1.0.0"
+type: "error_schema"
+
+# エラータイプの定義
+error_types:
+  validation:
+    description: "検証関連のエラー"
+    required_fields:
+      - name: "validation_point"
+        type: "string"
+        description: "検証が失敗したポイント"
+      - name: "expected_value"
+        type: "any"
+        description: "期待値"
+      - name: "actual_value"
+        type: "any"
+        description: "実際の値"
+  
+  process:
+    description: "プロセス実行エラー"
+    required_fields:
+      - name: "process_name"
+        type: "string"
+        description: "エラーが発生したプロセス"
+      - name: "step_name"
+        type: "string"
+        description: "エラーが発生したステップ"
+      - name: "error_details"
+        type: "object"
+        description: "詳細なエラー情報"
+  
+  system:
+    description: "システムエラー"
+    required_fields:
+      - name: "component"
+        type: "string"
+        description: "エラーが発生したコンポーネント"
+      - name: "resource_state"
+        type: "object"
+        description: "リソースの状態"
+      - name: "system_logs"
+        type: "array"
+        description: "関連するシステムログ"
+
+# エラー重要度の定義
+severity_levels:
+  type: "object"
+  required_fields:
+    - name: "level"
+      type: "string"
+      enum: ["critical", "error", "warning", "info"]
+    - name: "response_time"
+      type: "string"
+      description: "対応必要時間"
+    - name: "notification_method"
+      type: "string"
+      description: "通知方法"
+
+# 回復手順の定義
+recovery_procedure:
+  type: "object"
+  required_fields:
+    - name: "steps"
+      type: "array"
+      description: "回復手順のステップ"
+    - name: "verification"
+      type: "object"
+      description: "回復後の検証方法"
+    - name: "rollback_plan"
+      type: "object"
+      description: "ロールバック計画"
+
+# エラー報告の形式
+error_report:
+  type: "object"
+  required_fields:
+    - name: "error_id"
+      type: "string"
+      description: "エラーの一意識別子"
+    - name: "timestamp"
+      type: "string"
+      description: "発生時刻"
+    - name: "context"
+      type: "object"
+      description: "エラー発生時のコンテキスト"
+    - name: "stack_trace"
+      type: "string"
+      description: "スタックトレース"
+
+# エラーパターンの学習
+learning_pattern:
+  type: "object"
+  required_fields:
+    - name: "pattern_recognition"
+      type: "object"
+      description: "パターン認識ルール"
+    - name: "success_metrics"
+      type: "object"
+      description: "成功指標"
+    - name: "adaptation_rules"
+      type: "object"
+      description: "適応ルール"
+
+# エラー予防の定義
+prevention_schema:
+  type: "object"
+  required_fields:
+    - name: "monitoring_points"
+      type: "array"
+      description: "監視ポイント"
+    - name: "thresholds"
+      type: "object"
+      description: "閾値設定"
+    - name: "preventive_actions"
+      type: "array"
+      description: "予防的アクション"
+
+# エラー分析の定義
+analysis_schema:
+  type: "object"
+  required_fields:
+    - name: "root_cause_analysis"
+      type: "object"
+      description: "根本原因分析方法"
+    - name: "impact_assessment"
+      type: "object"
+      description: "影響評価"
+    - name: "trend_analysis"
+      type: "object"
+      description: "傾向分析"
+
+# メトリクスの定義
+metrics_schema:
+  type: "object"
+  required_fields:
+    - name: "error_rate"
+      type: "object"
+      description: "エラー発生率"
+    - name: "recovery_time"
+      type: "object"
+      description: "回復時間"
+    - name: "prevention_rate"
+      type: "object"
+      description: "予防成功率"
+
+# 更新履歴
+history:
+  - version: "1.0.0"
+    date: "2025-01-11"
+    description: "初期バージョン"
+    author: "Cline AI"
