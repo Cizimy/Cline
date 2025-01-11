@@ -1,6 +1,6 @@
 # コンテキスト定義スキーマ
 
-version: "1.0.0"
+version: "1.1.0"
 type: "context_schema"
 
 # コンテキストタイプの定義
@@ -17,10 +17,27 @@ context_types:
       - name: "shared_resources"
         type: "object"
         description: "共有リソース定義"
+      - name: "async_config"
+        type: "object"
+        description: "非同期処理の全体設定"
+        properties:
+          - name: "state_management"
+            type: "object"
+            description: "状態管理設定"
+          - name: "checkpoint_config"
+            type: "object"
+            description: "チェックポイント設定"
+          - name: "timeout_settings"
+            type: "object"
+            description: "タイムアウト設定"
   
   mcp:
     description: "MCPサーバー固有のコンテキスト"
     required_fields:
+      - name: "server_type"
+        type: "string"
+        enum: ["python", "node", "custom"]
+        description: "サーバータイプ"
       - name: "required_knowledge"
         type: "object"
         description: "必要な知識ベース"
@@ -33,6 +50,38 @@ context_types:
       - name: "operation_patterns"
         type: "object"
         description: "操作パターン"
+      - name: "api_endpoints"
+        type: "array"
+        description: "提供するAPIエンドポイント"
+      - name: "scaling_config"
+        type: "object"
+        description: "スケーリング設定"
+        properties:
+          - name: "auto_scaling"
+            type: "object"
+            description: "自動スケーリング設定"
+          - name: "load_balancing"
+            type: "object"
+            description: "負荷分散設定"
+          - name: "resource_limits"
+            type: "object"
+            description: "リソース制限"
+      - name: "ipc_config"
+        type: "object"
+        description: "プロセス間通信設定"
+        properties:
+          - name: "communication_type"
+            type: "string"
+            enum: ["event", "message", "stream", "shared_memory"]
+          - name: "message_format"
+            type: "object"
+            description: "メッセージフォーマット"
+          - name: "routing"
+            type: "object"
+            description: "ルーティング設定"
+          - name: "qos"
+            type: "object"
+            description: "品質設定"
   
   process:
     description: "プロセス実行コンテキスト"
@@ -46,6 +95,25 @@ context_types:
       - name: "decision_criteria"
         type: "object"
         description: "判断基準"
+      - name: "async_state"
+        type: "object"
+        description: "非同期実行の状態"
+        properties:
+          - name: "state"
+            type: "string"
+            enum: ["pending", "running", "completed", "failed", "cancelled"]
+          - name: "progress"
+            type: "object"
+            description: "進捗情報"
+          - name: "checkpoints"
+            type: "array"
+            description: "チェックポイント"
+          - name: "error_state"
+            type: "object"
+            description: "エラー状態"
+          - name: "recovery_point"
+            type: "object"
+            description: "リカバリーポイント"
 
 # 状態管理の定義
 state_schema:
@@ -60,6 +128,19 @@ state_schema:
     - name: "validation_points"
       type: "array"
       description: "状態検証ポイント"
+    - name: "async_states"
+      type: "object"
+      description: "非同期処理の状態管理"
+      properties:
+        - name: "checkpoints"
+          type: "array"
+          description: "チェックポイント定義"
+        - name: "timeout_config"
+          type: "object"
+          description: "タイムアウト設定"
+        - name: "recovery_states"
+          type: "array"
+          description: "回復可能な状態定義"
 
 # メモリ要件の定義
 memory_schema:
@@ -74,6 +155,16 @@ memory_schema:
     - name: "update_policy"
       type: "object"
       description: "更新ポリシー"
+    - name: "async_storage"
+      type: "object"
+      description: "非同期処理用ストレージ"
+      properties:
+        - name: "checkpoint_storage"
+          type: "object"
+          description: "チェックポイントの保存設定"
+        - name: "state_persistence"
+          type: "object"
+          description: "状態永続化設定"
 
 # 実行環境の定義
 environment_schema:
@@ -88,6 +179,19 @@ environment_schema:
     - name: "environment_variables"
       type: "object"
       description: "環境変数設定"
+    - name: "server_environment"
+      type: "object"
+      description: "サーバー環境設定"
+      properties:
+        - name: "server_type"
+          type: "string"
+          enum: ["python", "node", "custom"]
+        - name: "runtime_version"
+          type: "string"
+          description: "ランタイムバージョン"
+        - name: "dependencies"
+          type: "array"
+          description: "依存関係"
 
 # 相互作用の定義
 interaction_schema:
@@ -102,6 +206,22 @@ interaction_schema:
     - name: "communication_patterns"
       type: "object"
       description: "通信パターン"
+    - name: "ipc_patterns"
+      type: "object"
+      description: "プロセス間通信パターン"
+      properties:
+        - name: "communication_type"
+          type: "string"
+          enum: ["event", "message", "stream", "shared_memory"]
+        - name: "message_format"
+          type: "object"
+          description: "メッセージフォーマット"
+        - name: "routing"
+          type: "object"
+          description: "ルーティング設定"
+        - name: "qos"
+          type: "object"
+          description: "品質設定"
 
 # エラーハンドリングの定義
 error_handling_schema:
@@ -116,6 +236,22 @@ error_handling_schema:
     - name: "logging_requirements"
       type: "object"
       description: "ログ要件"
+    - name: "severity_levels"
+      type: "object"
+      description: "エラー重要度の定義"
+      properties:
+        - name: "level"
+          type: "string"
+          enum: ["critical", "error", "warning", "info"]
+        - name: "response_time"
+          type: "string"
+          description: "対応必要時間"
+        - name: "escalation_policy"
+          type: "object"
+          description: "エスカレーションポリシー"
+        - name: "impact_assessment"
+          type: "object"
+          description: "影響評価"
 
 # 検証ルールの定義
 validation_rules_schema:
@@ -130,6 +266,19 @@ validation_rules_schema:
     - name: "success_criteria"
       type: "array"
       description: "成功基準"
+    - name: "async_validation"
+      type: "object"
+      description: "非同期処理の検証"
+      properties:
+        - name: "checkpoint_validation"
+          type: "object"
+          description: "チェックポイントの検証"
+        - name: "state_validation"
+          type: "object"
+          description: "状態の検証"
+        - name: "timeout_handling"
+          type: "object"
+          description: "タイムアウト処理"
 
 # 出力管理の定義
 output_management_schema:
@@ -144,9 +293,32 @@ output_management_schema:
     - name: "reporting_requirements"
       type: "object"
       description: "レポート要件"
+    - name: "async_output"
+      type: "object"
+      description: "非同期処理の出力管理"
+      properties:
+        - name: "progress_tracking"
+          type: "object"
+          description: "進捗追跡"
+        - name: "checkpoint_logging"
+          type: "object"
+          description: "チェックポイントログ"
+        - name: "state_reporting"
+          type: "object"
+          description: "状態レポート"
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "MCPサーバー対応と非同期処理の強化"
+    author: "Cline AI"
+    changes:
+      - "MCPサーバー関連の定義強化（server_type、api_endpoints、scaling_config）"
+      - "非同期処理の状態管理とチェックポイント機能の追加"
+      - "プロセス間通信（IPC）の定義強化"
+      - "エラー重要度とエスカレーションポリシーの追加"
+      - "process_schema.yamlとvalidation_schema.yamlとの整合性確保"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"
