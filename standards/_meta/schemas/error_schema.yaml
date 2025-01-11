@@ -1,6 +1,6 @@
 # エラー定義スキーマ
 
-version: "1.0.0"
+version: "1.1.0"
 type: "error_schema"
 
 # エラータイプの定義
@@ -17,6 +17,22 @@ error_types:
       - name: "actual_value"
         type: "any"
         description: "実際の値"
+      - name: "validation_type"
+        type: "string"
+        description: "検証タイプ（同期/非同期）"
+      - name: "async_context"
+        type: "object"
+        description: "非同期検証のコンテキスト"
+        properties:
+          - name: "checkpoint"
+            type: "string"
+            description: "現在のチェックポイント"
+          - name: "progress"
+            type: "object"
+            description: "進捗状況"
+          - name: "timeout_config"
+            type: "object"
+            description: "タイムアウト設定"
   
   process:
     description: "プロセス実行エラー"
@@ -30,6 +46,20 @@ error_types:
       - name: "error_details"
         type: "object"
         description: "詳細なエラー情報"
+      - name: "process_type"
+        type: "string"
+        enum: ["setup", "development", "deployment", "mcp_server", "async_process"]
+        description: "プロセスタイプ"
+      - name: "async_state"
+        type: "object"
+        description: "非同期プロセスの状態"
+        properties:
+          - name: "state"
+            type: "string"
+            enum: ["pending", "running", "completed", "failed", "cancelled"]
+          - name: "recovery_point"
+            type: "object"
+            description: "リカバリーポイント情報"
   
   system:
     description: "システムエラー"
@@ -43,6 +73,50 @@ error_types:
       - name: "system_logs"
         type: "array"
         description: "関連するシステムログ"
+      - name: "system_metrics"
+        type: "object"
+        description: "システムメトリクス"
+
+  mcp_server:
+    description: "MCPサーバー関連のエラー"
+    required_fields:
+      - name: "server_type"
+        type: "string"
+        enum: ["python", "node", "custom"]
+        description: "サーバータイプ"
+      - name: "error_source"
+        type: "string"
+        enum: ["auth", "api", "scaling", "health_check", "ipc"]
+        description: "エラーの発生源"
+      - name: "server_state"
+        type: "object"
+        description: "サーバーの状態情報"
+      - name: "api_context"
+        type: "object"
+        description: "API関連のコンテキスト"
+      - name: "inter_server_communication"
+        type: "object"
+        description: "サーバー間通信の状態"
+
+  ipc:
+    description: "プロセス間通信のエラー"
+    required_fields:
+      - name: "communication_type"
+        type: "string"
+        enum: ["event", "message", "stream", "shared_memory"]
+        description: "通信方式"
+      - name: "error_context"
+        type: "object"
+        description: "通信エラーのコンテキスト"
+      - name: "message_trace"
+        type: "object"
+        description: "メッセージトレース情報"
+      - name: "routing_info"
+        type: "object"
+        description: "ルーティング情報"
+      - name: "qos_metrics"
+        type: "object"
+        description: "通信品質メトリクス"
 
 # エラー重要度の定義
 severity_levels:
@@ -57,6 +131,15 @@ severity_levels:
     - name: "notification_method"
       type: "string"
       description: "通知方法"
+    - name: "escalation_policy"
+      type: "object"
+      description: "エスカレーションポリシー"
+    - name: "impact_assessment"
+      type: "object"
+      description: "影響評価"
+    - name: "recovery_priority"
+      type: "string"
+      enum: ["immediate", "high", "medium", "low"]
 
 # 回復手順の定義
 recovery_procedure:
@@ -71,6 +154,15 @@ recovery_procedure:
     - name: "rollback_plan"
       type: "object"
       description: "ロールバック計画"
+    - name: "async_recovery"
+      type: "object"
+      description: "非同期回復手順"
+    - name: "ipc_recovery"
+      type: "object"
+      description: "通信回復手順"
+    - name: "checkpoint_recovery"
+      type: "object"
+      description: "チェックポイントからの回復"
 
 # エラー報告の形式
 error_report:
@@ -88,6 +180,12 @@ error_report:
     - name: "stack_trace"
       type: "string"
       description: "スタックトレース"
+    - name: "trace_id"
+      type: "string"
+      description: "分散トレーシングID"
+    - name: "related_errors"
+      type: "array"
+      description: "関連するエラー"
 
 # エラーパターンの学習
 learning_pattern:
@@ -102,6 +200,12 @@ learning_pattern:
     - name: "adaptation_rules"
       type: "object"
       description: "適応ルール"
+    - name: "error_correlation"
+      type: "object"
+      description: "エラー相関分析"
+    - name: "prevention_patterns"
+      type: "array"
+      description: "予防パターン"
 
 # エラー予防の定義
 prevention_schema:
@@ -116,6 +220,12 @@ prevention_schema:
     - name: "preventive_actions"
       type: "array"
       description: "予防的アクション"
+    - name: "early_warning"
+      type: "object"
+      description: "早期警告システム"
+    - name: "resource_monitoring"
+      type: "object"
+      description: "リソース監視"
 
 # エラー分析の定義
 analysis_schema:
@@ -130,6 +240,12 @@ analysis_schema:
     - name: "trend_analysis"
       type: "object"
       description: "傾向分析"
+    - name: "correlation_analysis"
+      type: "object"
+      description: "相関分析"
+    - name: "performance_impact"
+      type: "object"
+      description: "パフォーマンスへの影響"
 
 # メトリクスの定義
 metrics_schema:
@@ -144,9 +260,25 @@ metrics_schema:
     - name: "prevention_rate"
       type: "object"
       description: "予防成功率"
+    - name: "resource_usage"
+      type: "object"
+      description: "リソース使用状況"
+    - name: "performance_metrics"
+      type: "object"
+      description: "パフォーマンス指標"
 
 # 更新履歴
 history:
+  - version: "1.1.0"
+    date: "2025-01-11"
+    description: "MCPサーバー対応と非同期処理の強化"
+    author: "Cline AI"
+    changes:
+      - "MCPサーバーエラータイプの追加"
+      - "非同期処理のエラー定義強化"
+      - "プロセス間通信のエラー定義追加"
+      - "エラー重要度の拡張"
+      - "process_schema.yamlとvalidation_schema.yamlとの整合性確保"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"
