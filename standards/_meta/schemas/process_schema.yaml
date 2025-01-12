@@ -1,6 +1,6 @@
 # プロセス定義スキーマ
 
-version: "1.1.1"
+version: "1.2.0"
 type: "process_schema"
 
 # プロセスタイプの定義
@@ -63,7 +63,7 @@ process_types:
             type: "object"
             description: "通知設定"
 
-  mcp_server:
+  mcp_server_management:
     description: "MCPサーバー管理用プロセス"
     required_fields:
       - name: "server_type"
@@ -88,6 +88,15 @@ process_types:
             type: "array"
             description: "常に許可する操作"
             default: []
+          - name: "command_validation"
+            type: "object"
+            description: "コマンド検証設定"
+          - name: "args_verification"
+            type: "object"
+            description: "引数検証設定"
+          - name: "permission_management"
+            type: "object"
+            description: "権限管理設定"
       - name: "runtime_requirements"
         type: "object"
         description: "実行時要件"
@@ -101,6 +110,12 @@ process_types:
           - name: "environment_vars"
             type: "object"
             description: "必要な環境変数"
+          - name: "version_compatibility"
+            type: "object"
+            description: "バージョン互換性設定"
+          - name: "resource_monitoring"
+            type: "object"
+            description: "リソース監視設定"
       - name: "authentication"
         type: "object"
         description: "認証設定"
@@ -114,6 +129,12 @@ process_types:
           - name: "env_vars"
             type: "object"
             description: "認証用環境変数"
+          - name: "token_management"
+            type: "object"
+            description: "トークン管理設定"
+          - name: "permission_control"
+            type: "object"
+            description: "権限制御設定"
       - name: "transport"
         type: "object"
         description: "トランスポート層設定"
@@ -128,6 +149,12 @@ process_types:
           - name: "retry"
             type: "object"
             description: "リトライ設定"
+          - name: "type_validation"
+            type: "object"
+            description: "トランスポートタイプ検証"
+          - name: "timeout_management"
+            type: "object"
+            description: "タイムアウト管理設定"
       - name: "capabilities"
         type: "object"
         description: "サーバー機能"
@@ -141,6 +168,55 @@ process_types:
           - name: "prompts"
             type: "boolean"
             description: "プロンプト機能の有効化"
+          - name: "capability_validation"
+            type: "object"
+            description: "機能検証設定"
+      - name: "error_handling"
+        type: "object"
+        description: "エラー処理設定"
+        required_fields:
+          - name: "severity_levels"
+            type: "object"
+            description: "重要度レベル設定"
+            required_fields:
+              - name: "critical"
+                type: "number"
+                description: "クリティカルエラーの対応時間（分）"
+                default: 15
+              - name: "high"
+                type: "number"
+                description: "重要エラーの対応時間（分）"
+                default: 60
+              - name: "low"
+                type: "number"
+                description: "軽微なエラーの対応時間（分）"
+                default: 1440
+          - name: "recovery_strategies"
+            type: "object"
+            description: "リカバリー戦略"
+            required_fields:
+              - name: "auto_retry"
+                type: "object"
+                description: "自動リトライ設定"
+              - name: "fallback_action"
+                type: "object"
+                description: "フォールバックアクション設定"
+              - name: "manual_intervention"
+                type: "object"
+                description: "手動介入設定"
+          - name: "notification_rules"
+            type: "object"
+            description: "通知ルール"
+            required_fields:
+              - name: "error_threshold"
+                type: "object"
+                description: "エラー閾値設定"
+              - name: "escalation_path"
+                type: "array"
+                description: "エスカレーションパス"
+              - name: "alert_channels"
+                type: "array"
+                description: "アラートチャンネル"
 
   async_process:
     description: "非同期プロセス用"
@@ -419,6 +495,17 @@ metrics_schema:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "process_types.yamlとの整合性強化"
+    author: "Cline AI"
+    changes:
+      - "MCPサーバー管理プロセスの名称を統一（mcp_server → mcp_server_management）"
+      - "サーバー設定の検証機能を強化"
+      - "ランタイム要件の監視機能を追加"
+      - "認証とトークン管理の詳細化"
+      - "エラーハンドリングの体系化（重要度、リカバリー戦略、通知ルール）"
+      - "バージョンを1.2.0に更新してprocess_types.yamlと統一"
   - version: "1.1.1"
     date: "2025-01-12"
     description: "MCPフレームワーク仕様準拠の強化"
