@@ -49,20 +49,37 @@ server_config:
 # サーバー機能定義
 capabilities:
   resources:
-    enabled: false
+    enabled: true
     description: "データとコンテンツの提供機能"
   
   tools:
-    enabled: false
+    enabled: true
     description: "実行可能な機能の提供"
+    agent_support:
+      hierarchical: true
+      description: "階層的なエージェントシステムのサポート"
+      roles:
+        - "coordinator"
+        - "worker"
+        - "specialist"
   
   prompts:
-    enabled: false
+    enabled: true
     description: "再利用可能なプロンプトテンプレート"
+    interactive:
+      enabled: true
+      workflow_support: true
+      streaming: true
   
   sampling:
-    enabled: false
+    enabled: true
     description: "LLMからの補完要求機能"
+    fallback:
+      enabled: true
+      description: "サンプリング未対応クライアントへの代替機能"
+      methods:
+        - "tool_based_completion"
+        - "prompt_based_completion"
 
 # サーバー定義
 server_definition:

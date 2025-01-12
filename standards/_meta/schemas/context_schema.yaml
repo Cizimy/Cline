@@ -13,7 +13,7 @@ mcp_protocol:
       required_fields:
         - name: "type"
           type: "string"
-          enum: ["stdio", "http_sse"]
+          enum: ["stdio", "http_sse", "remote"]
           description: "トランスポートタイプ"
         - name: "timeout"
           type: "number"
@@ -21,6 +21,29 @@ mcp_protocol:
         - name: "retry"
           type: "object"
           description: "リトライ設定"
+    - name: "authentication"
+      type: "object"
+      description: "認証設定"
+      required_fields:
+        - name: "type"
+          type: "string"
+          enum: ["none", "oauth2", "token"]
+          description: "認証タイプ"
+        - name: "config"
+          type: "object"
+          description: "認証設定"
+          optional: true
+    - name: "discovery"
+      type: "object"
+      description: "サービスディスカバリー設定"
+      required_fields:
+        - name: "enabled"
+          type: "boolean"
+          description: "ディスカバリー有効化フラグ"
+        - name: "method"
+          type: "string"
+          enum: ["dns", "http", "manual"]
+          description: "ディスカバリー方式"
     - name: "message_format"
       type: "object"
       description: "JSON-RPCメッセージフォーマット"

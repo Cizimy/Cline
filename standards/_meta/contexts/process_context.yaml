@@ -151,6 +151,38 @@ process_dependencies:
       - "server_status"
       - "operation_logs"
 
+  agent_hierarchy:
+    coordinator:
+      requires:
+        - "operational_server"
+      provides:
+        - "task_distribution"
+        - "progress_tracking"
+      state_changes:
+        - "task_assignments"
+        - "coordination_state"
+    
+    worker:
+      requires:
+        - "task_distribution"
+      provides:
+        - "task_execution"
+        - "result_reporting"
+      state_changes:
+        - "execution_state"
+        - "worker_metrics"
+    
+    specialist:
+      requires:
+        - "task_distribution"
+        - "specialized_resources"
+      provides:
+        - "expert_execution"
+        - "specialized_results"
+      state_changes:
+        - "specialist_state"
+        - "domain_metrics"
+
 # 出力管理
 output_management:
   log_levels:
