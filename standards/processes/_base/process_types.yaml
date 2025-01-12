@@ -31,8 +31,30 @@ process_types:
     execution_components:
       - tool_invocation
       - agent_coordination
-      - error_handling
       - progress_tracking
+      error_handling:
+        standard_codes:
+          - parse_error: -32700
+          - invalid_request: -32600
+          - method_not_found: -32601
+          - invalid_params: -32602
+          - internal_error: -32603
+          - server_error: -32000
+        severity_levels:
+          - critical: 15  # 15分以内の対応
+          - high: 60     # 1時間以内の対応
+          - low: 1440    # 24時間以内の対応
+        recovery_strategies:
+          - auto_retry:
+              max_attempts: 3
+              interval: 5
+          - fallback_action:
+              type: "alternative_execution"
+              timeout: 300
+          - manual_intervention:
+              notification:
+                channels: ["alert", "log"]
+                escalation_path: ["owner", "admin"]
 
   # Intelligence Layer
   llm_reasoning:
@@ -137,6 +159,25 @@ process_types:
       - request_response
       - publish_subscribe
       - event_driven
+    message_format:
+      type: "jsonrpc"
+      version: "2.0"
+      validation:
+        - syntax_check
+        - schema_validation
+        - error_code_compliance
+    error_handling:
+      standard_codes:
+        - parse_error: -32700
+        - invalid_request: -32600
+        - method_not_found: -32601
+        - invalid_params: -32602
+        - internal_error: -32603
+        - server_error: -32000
+      severity_levels:
+        - critical
+        - high
+        - low
 
   role_management:
     description: "エージェント役割管理プロセス"
@@ -167,6 +208,57 @@ process_types:
       - full_sync
       - incremental_sync
       - event_based_sync
+
+  # MCP Server Management
+  mcp_server_management:
+    description: "MCPサーバー管理プロセス"
+    required_contexts:
+      - global
+      - mcp_context
+      - server_config
+    validation_rules:
+      - server_compatibility_check
+      - auth_config_check
+      - capability_validation
+    server_configuration:
+      server_types:
+        - python
+        - node
+        - custom
+      base_settings:
+        - command_validation
+        - args_verification
+        - disable_control
+        - permission_management
+      runtime_management:
+        - version_compatibility
+        - environment_validation
+        - resource_monitoring
+      auth_handling:
+        - config_validation
+        - token_management
+        - permission_control
+      transport_config:
+        - type_validation
+        - timeout_management
+        - retry_strategy
+      capability_management:
+        - resource_capability
+        - tool_capability
+        - prompt_capability
+    error_handling:
+      severity_levels:
+        - critical: 15
+        - high: 60
+        - low: 1440
+      recovery_strategies:
+        - auto_retry
+        - fallback_action
+        - manual_intervention
+      notification_rules:
+        - error_threshold
+        - escalation_path
+        - alert_channels
 
 common_attributes:
   version: "1.2.0"

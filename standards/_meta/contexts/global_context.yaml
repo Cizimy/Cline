@@ -1,7 +1,26 @@
 # グローバルコンテキスト定義
 
-version: "1.1.0"
+version: "1.2.0"
 type: "global_context"
+
+# MCPプロトコル設定
+mcp_protocol:
+  version: "1.0.0"
+  standard_compliance: true
+  transport:
+    type: "stdio"
+    fallback: "http_sse"
+  message_format: "json-rpc-2.0"
+  error_codes:
+    range:
+      min: -32700
+      max: -32000
+    standard_codes:
+      parse_error: -32700
+      invalid_request: -32600
+      method_not_found: -32601
+      invalid_params: -32602
+      internal_error: -32603
 
 # プロジェクト基本情報
 project_information:
@@ -172,20 +191,23 @@ error_management:
   
   error_categories:
     critical:
-      description: "致命的なエラー"
+      description: "致命的なエラー - システム停止、セキュリティ違反、データ損失リスク"
       action: "即時中断"
       notification: "immediate"
       severity: "critical"
-    recoverable:
-      description: "回復可能なエラー"
-      action: "リトライ"
+      response_time: 15  # 15分以内
+    high:
+      description: "重大なエラー - 主要機能の部分停止、深刻なパフォーマンス低下"
+      action: "優先対応"
       max_retries: 3
       severity: "high"
-    warning:
-      description: "警告"
+      response_time: 60  # 60分以内
+    low:
+      description: "軽微なエラー - 軽度な不具合、軽度なパフォーマンス低下"
       action: "記録して継続"
       log_level: "warning"
       severity: "low"
+      response_time: 1440  # 24時間以内
   
   recovery:
     auto_recovery:
@@ -210,6 +232,10 @@ dependency_management:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク仕様への完全準拠、エラー重要度レベルの標準化、応答時間の明確化"
+    author: "Cline AI"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "プロジェクト全体のグローバルコンテキストを定義、メトリクス定義の統一、エラー管理の改善"
