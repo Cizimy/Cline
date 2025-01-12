@@ -57,11 +57,29 @@ execution_phases:
       - "ログ情報"
     performance_metrics:
       - name: "execution_time"
-        threshold: 3600
+        type: "histogram"
+        threshold:
+          critical: 1000
+          non_critical: 500
+        unit: "milliseconds"
       - name: "memory_usage"
-        threshold: 1024
+        type: "gauge"
+        threshold:
+          critical: 90
+          non_critical: 80
+        unit: "percent"
       - name: "cpu_usage"
-        threshold: 80
+        type: "gauge"
+        threshold:
+          critical: 80
+          non_critical: 70
+        unit: "percent"
+      - name: "error_rate"
+        type: "rate"
+        threshold:
+          critical: 0.01
+          non_critical: 0.005
+        unit: "percent"
   
   validation:
     description: "検証フェーズ"
@@ -217,12 +235,60 @@ output_management:
 # プロセス間連携
 process_interaction:
   communication:
-    type: "stdio"  # MCPフレームワーク標準のトランスポート
+    type:
+      enum: ["stdio", "http_sse", "remote"]
+      description: "MCPフレームワーク標準のトランスポート"
     timeout: 30
     retry:
       enabled: true
       max_attempts: 3
       backoff: "exponential"
+    authentication:
+      type:
+        enum: ["none", "oauth2", "token"]
+        description: "認証タイプ"
+      config:
+        oauth2:
+          enabled: true
+          grant_types: ["authorization_code", "client_credentials", "refresh_token"]
+          scopes: ["read", "write"]
+        token:
+          enabled: true
+          header: "Authorization"
+    discovery:
+      enabled: true
+      method:
+        enum: ["dns", "http", "manual"]
+        description: "サービスディスカバリー方式"
+  sampling:
+    enabled: true
+    config:
+      llm:
+        providers: ["anthropic", "openai", "local"]
+        timeout: 60
+      streaming:
+        enabled: true
+        chunk_size: 1024
+        max_buffer: 10240
+      caching:
+        enabled: true
+        ttl: 3600
+        strategy: "lru"
+      rate_limiting:
+        enabled: true
+        requests_per_minute: 60
+        burst: 10
+    fallback:
+      enabled: true
+      methods: ["tool_based_completion", "prompt_based_completion"]
+      strategy: "sequential"
+      config:
+        tool_based:
+          timeout: 30
+          retry_count: 3
+        prompt_based:
+          timeout: 30
+          retry_count: 3
   
   data_sharing:
     method: "memory"  # メモリベースの効率的な共有

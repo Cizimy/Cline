@@ -76,7 +76,12 @@ mcp_protocol:
             - name: "code"
               type: "number"
               description: "エラーコード"
-              enum: [-32700, -32600, -32601, -32602, -32603, -32000]
+              oneOf:
+                - enum: [-32700, -32600, -32601, -32602, -32603]  # 標準エラーコード
+                - type: "number"
+                  minimum: -32099
+                  maximum: -32000
+                  description: "サーバー固有のエラーコード範囲"
             - name: "message"
               type: "string"
               description: "エラーメッセージ"

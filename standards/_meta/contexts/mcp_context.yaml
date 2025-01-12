@@ -7,12 +7,47 @@ type: "mcp_context"
 protocol_standard:
   transport:
     type:
-      enum: ["stdio", "http_sse"]
+      enum: ["stdio", "http_sse", "remote"]
       description: "標準トランスポート層タイプ"
     timeout: 30
     retry:
       max_attempts: 3
       backoff: "exponential"
+  
+  authentication:
+    type:
+      enum: ["none", "oauth2", "token"]
+      description: "認証タイプ"
+    config:
+      oauth2:
+        grant_types: ["authorization_code", "client_credentials", "refresh_token"]
+        token_endpoint: "string"
+        auth_endpoint: "string"
+        refresh_endpoint: "string"
+        scopes: ["read", "write"]
+      token:
+        header: "Authorization"
+        prefix: "Bearer"
+        refresh_mechanism: {
+          enabled: true,
+          interval: 3600,
+          retry_count: 3
+        }
+  
+  discovery:
+    enabled: true
+    method:
+      enum: ["dns", "http", "manual"]
+      description: "サービスディスカバリー方式"
+    config:
+      dns:
+        domain: "string"
+        ttl: 300
+      http:
+        endpoint: "string"
+        interval: 60
+      manual:
+        endpoints: ["string"]
 
   message_format:
     jsonrpc: "2.0"
