@@ -1,6 +1,6 @@
 # プロセス実行コンテキスト定義
 
-version: "1.1.0"
+version: "1.2.0"  # MCPフレームワーク標準準拠バージョン
 type: "process_context"
 
 # プロセス実行環境
@@ -82,20 +82,15 @@ decision_criteria:
     retry_threshold: 3
     error_categories:
       critical:
-        description: "致命的なエラー"
+        description: "システム停止、セキュリティ違反、データ損失リスク"
         action: "即時中断"
+        response_time: 15  # 分単位
         notification: "immediate"
-        severity: "critical"
-      recoverable:
-        description: "回復可能なエラー"
-        action: "リトライ"
+      non_critical:
+        description: "一般的なエラー、パフォーマンス低下"
+        action: "リトライまたは記録"
+        response_time: 60  # 分単位
         max_retries: 3
-        severity: "high"
-      warning:
-        description: "警告"
-        action: "記録して継続"
-        log_level: "warning"
-        severity: "low"
   
   validation_rules:
     strict_mode:
@@ -115,30 +110,25 @@ decision_criteria:
 
 # 状態管理
 state_management:
-  tracked_states:
-    - name: "preparation_state"
-      possible_values: ["not_started", "in_progress", "completed", "failed"]
+  states:
+    - name: "server_state"
+      possible_values: ["initializing", "ready", "running", "error"]
       persistence: true
-    - name: "execution_state"
-      possible_values: ["waiting", "running", "completed", "failed"]
-      persistence: true
-    - name: "validation_state"
-      possible_values: ["pending", "in_progress", "passed", "failed"]
-      persistence: true
+      description: "MCPサーバーの基本状態"
   
-  state_transitions:
-    - from: "preparation_state.not_started"
-      to: "preparation_state.in_progress"
-      trigger: "start_preparation"
-      validation: "environment_check"
-    - from: "preparation_state.completed"
-      to: "execution_state.running"
-      trigger: "start_execution"
-      validation: "readiness_check"
-    - from: "execution_state.completed"
-      to: "validation_state.in_progress"
-      trigger: "start_validation"
-      validation: "completion_check"
+  transitions:
+    - from: "initializing"
+      to: "ready"
+      trigger: "initialization_complete"
+      validation: "server_ready_check"
+    - from: "ready"
+      to: "running"
+      trigger: "start_operation"
+      validation: "operation_check"
+    - from: "running"
+      to: "error"
+      trigger: "error_detected"
+      validation: "error_validation"
 
 # プロセス依存関係
 process_dependencies:
@@ -194,20 +184,20 @@ output_management:
 
 # プロセス間連携
 process_interaction:
-  dependencies:
-    check_method: "explicit"
-    handling: "strict"
-    validation:
+  communication:
+    type: "stdio"  # MCPフレームワーク標準のトランスポート
+    timeout: 30
+    retry:
       enabled: true
-      timeout: 30
+      max_attempts: 3
+      backoff: "exponential"
   
   data_sharing:
-    method: "file_based"
-    location: "shared_data/"
-    format: "yaml"
+    method: "memory"  # メモリベースの効率的な共有
+    format: "json"    # JSON-RPC 2.0準拠
     cleanup:
       enabled: true
-      retention_period: 86400
+      interval: 300   # 5分ごとのクリーンアップ
 
 # モニタリング設定の参照
 monitoring_configuration:
@@ -222,6 +212,15 @@ monitoring_configuration:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク標準への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "エラー管理を2段階（critical/non-critical）に簡素化"
+      - "プロセス間連携をMCP標準のトランスポート方式に統一"
+      - "状態管理をシンプルな4状態モデルに変更"
+      - "データ共有方式をメモリベースに最適化"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "AIエージェント設定の追加、モニタリング強化、プロセス依存関係の詳細化、整合性の改善"

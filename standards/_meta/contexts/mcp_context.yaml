@@ -183,95 +183,46 @@ async_processing:
   state_management:
     enabled: true
     checkpoints:
-      required: true
-      interval: "number"
-      timeout: "number"
-      storage_pattern:
-        reference: "async_storage_patterns.yaml#checkpoint_storage"
-        default: "memory_based"
+      enabled: true
+      interval: 60  # 秒単位
+      timeout: 300  # 秒単位
     recovery:
       auto_retry: true
       max_retries: 3
-      backoff_strategy: "exponential"
+      backoff: "exponential"
   
   task_tracking:
-    unique_id: true
+    enabled: true
     status_updates:
+      enabled: true
       frequency: "realtime"
-      persistence: true
-      format:
-        reference: "async_storage_patterns.yaml#progress_tracking.format"
-      storage_pattern:
-        reference: "async_storage_patterns.yaml#pattern_storage"
-        default: "memory"
-    completion_verification:
-      required: true
-      timeout: 300
+    completion_check:
+      enabled: true
+      timeout: 300  # 秒単位
 
 # プロセス間通信（IPC）
 ipc_configuration:
-  communication_types:
-    - type: "message_queue"
-      protocol: "AMQP"
-      reliability: "at_least_once"
-      metrics:
-        reference: "unified_metrics.yaml#base_metrics.resource"
-
-    - type: "shared_memory"
-      access_mode: "read_write"
-      sync_mechanism: "mutex"
-      metrics:
-        reference: "unified_metrics.yaml#base_metrics.system"
-
-    - type: "socket"
-      protocol: "TCP"
-      encryption: true
-      metrics:
-        reference: "unified_metrics.yaml#base_metrics.performance"
+  communication:
+    type: "stdio"  # MCPフレームワーク標準のトランスポート
+    timeout: 30
+    retry:
+      enabled: true
+      max_attempts: 3
+      backoff: "exponential"
   
-  message_patterns:
-    - pattern: "request_response"
-      timeout: 30
-      retry_policy: "exponential_backoff"
-      metrics:
-        - name: "response_time"
-          type: "histogram"
-          description: "リクエスト-レスポンス時間（ms）"
-          threshold: 1000
-          alert_level: "warning"
-        - name: "retry_count"
-          type: "counter"
-          description: "リトライ回数"
-          threshold: 3
-          alert_level: "warning"
-
-    - pattern: "publish_subscribe"
-      delivery_guarantee: "at_least_once"
-      metrics:
-        - name: "subscriber_count"
-          type: "gauge"
-          description: "アクティブなサブスクライバー数"
-          threshold: 100
-          alert_level: "info"
-        - name: "message_rate"
-          type: "rate"
-          description: "メッセージ配信率（msg/s）"
-          threshold: 1000
-          alert_level: "warning"
-
-    - pattern: "stream"
-      buffer_size: 1024
-      metrics:
-        - name: "buffer_usage"
-          type: "gauge"
-          description: "バッファ使用率"
-          threshold: 80
-          alert_level: "warning"
-        - name: "throughput"
-          type: "rate"
-          description: "データスループット（MB/s）"
-          threshold: 100
-          alert_level: "warning"
+  message_pattern:
+    type: "request_response"  # JSON-RPC 2.0準拠
+    format: "json"
+    validation: true
+    metrics:
+      - name: "response_time"
+        type: "histogram"
+        description: "リクエスト-レスポンス時間（ms）"
+        threshold: 1000
+      - name: "retry_count"
+        type: "counter"
+        description: "リトライ回数"
+        threshold: 3
 
 # メモリ要件
 memory_requirements:
@@ -338,30 +289,21 @@ error_management:
   severity_levels:
     critical:
       response_time: 15  # 分単位
-      description: "即時対応（15分以内）"
+      description: "システム停止、セキュリティ違反、データ損失リスク"
       conditions:
         - "システム全体の機能停止"
         - "重大なセキュリティ違反"
         - "データ損失のリスク"
-      error_codes: [-32700, -32603]  # 最重要エラー
+      error_codes: [-32700, -32603]  # クリティカルエラー
 
-    high:
+    non_critical:
       response_time: 60  # 分単位
-      description: "1時間以内の対応"
+      description: "一般的なエラー、パフォーマンス低下、軽微な不具合"
       conditions:
-        - "主要機能の部分的な停止"
-        - "パフォーマンスの深刻な低下"
-        - "データ整合性の問題"
-      error_codes: [-32602, -32601]  # 重要エラー
-
-    low:
-      response_time: 1440  # 分単位
-      description: "24時間以内の対応"
-      conditions:
+        - "パフォーマンスの低下"
         - "軽微な機能の不具合"
-        - "パフォーマンスの軽度な低下"
-        - "非重要な警告"
-      error_codes: [-32600, -32000]  # 一般エラー
+        - "警告レベルの問題"
+      error_codes: [-32602, -32600, -32000]  # 非クリティカルエラー
 
   # リカバリー戦略
   recovery_strategies:

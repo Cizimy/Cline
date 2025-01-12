@@ -191,23 +191,17 @@ error_management:
   
   error_categories:
     critical:
-      description: "致命的なエラー - システム停止、セキュリティ違反、データ損失リスク"
+      description: "システム停止、セキュリティ違反、データ損失リスク"
       action: "即時中断"
       notification: "immediate"
-      severity: "critical"
       response_time: 15  # 15分以内
-    high:
-      description: "重大なエラー - 主要機能の部分停止、深刻なパフォーマンス低下"
-      action: "優先対応"
+      severity: "critical"
+    non_critical:
+      description: "一般的なエラー、パフォーマンス低下、軽微な不具合"
+      action: "リトライまたは記録"
       max_retries: 3
-      severity: "high"
       response_time: 60  # 60分以内
-    low:
-      description: "軽微なエラー - 軽度な不具合、軽度なパフォーマンス低下"
-      action: "記録して継続"
-      log_level: "warning"
-      severity: "low"
-      response_time: 1440  # 24時間以内
+      severity: "normal"
   
   recovery:
     auto_recovery:
