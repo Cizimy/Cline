@@ -1,7 +1,66 @@
 # コンテキスト定義スキーマ
 
-version: "1.1.0"
+version: "1.2.0"
 type: "context_schema"
+
+# MCPプロトコル標準定義
+mcp_protocol:
+  description: "MCPプロトコルの標準定義"
+  required_fields:
+    - name: "transport"
+      type: "object"
+      description: "トランスポート層設定"
+      required_fields:
+        - name: "type"
+          type: "string"
+          enum: ["stdio", "http_sse"]
+          description: "トランスポートタイプ"
+        - name: "timeout"
+          type: "number"
+          description: "タイムアウト設定（秒）"
+        - name: "retry"
+          type: "object"
+          description: "リトライ設定"
+    - name: "message_format"
+      type: "object"
+      description: "JSON-RPCメッセージフォーマット"
+      required_fields:
+        - name: "jsonrpc"
+          type: "string"
+          enum: ["2.0"]
+          description: "JSON-RPCバージョン"
+        - name: "id"
+          type: "string"
+          description: "メッセージID"
+          optional: true
+        - name: "method"
+          type: "string"
+          description: "メソッド名"
+          optional: true
+        - name: "params"
+          type: "object"
+          description: "パラメータ"
+          optional: true
+        - name: "result"
+          type: "object"
+          description: "レスポンス結果"
+          optional: true
+        - name: "error"
+          type: "object"
+          description: "エラー情報"
+          optional: true
+          required_fields:
+            - name: "code"
+              type: "number"
+              description: "エラーコード"
+              enum: [-32700, -32600, -32601, -32602, -32603, -32000]
+            - name: "message"
+              type: "string"
+              description: "エラーメッセージ"
+            - name: "data"
+              type: "object"
+              description: "追加のエラーデータ"
+              optional: true
 
 # コンテキストタイプの定義
 context_types:
@@ -38,50 +97,70 @@ context_types:
         type: "string"
         enum: ["python", "node", "custom"]
         description: "サーバータイプ"
-      - name: "required_knowledge"
+      - name: "base_config"
         type: "object"
-        description: "必要な知識ベース"
-      - name: "state_tracking"
-        type: "object"
-        description: "状態追跡情報"
-      - name: "memory_requirements"
-        type: "object"
-        description: "メモリ要件"
-      - name: "operation_patterns"
-        type: "object"
-        description: "操作パターン"
-      - name: "api_endpoints"
-        type: "array"
-        description: "提供するAPIエンドポイント"
-      - name: "scaling_config"
-        type: "object"
-        description: "スケーリング設定"
-        properties:
-          - name: "auto_scaling"
-            type: "object"
-            description: "自動スケーリング設定"
-          - name: "load_balancing"
-            type: "object"
-            description: "負荷分散設定"
-          - name: "resource_limits"
-            type: "object"
-            description: "リソース制限"
-      - name: "ipc_config"
-        type: "object"
-        description: "プロセス間通信設定"
-        properties:
-          - name: "communication_type"
+        description: "基本設定"
+        required_fields:
+          - name: "command"
             type: "string"
-            enum: ["event", "message", "stream", "shared_memory"]
-          - name: "message_format"
+            description: "サーバー実行コマンド"
+          - name: "args"
+            type: "array"
+            description: "コマンド引数"
+          - name: "disabled"
+            type: "boolean"
+            description: "無効化フラグ"
+            default: false
+          - name: "alwaysAllow"
+            type: "array"
+            description: "常に許可する操作"
+            default: []
+      - name: "error_handling"
+        type: "object"
+        description: "エラー処理設定"
+        required_fields:
+          - name: "severity_levels"
             type: "object"
-            description: "メッセージフォーマット"
-          - name: "routing"
+            description: "重要度レベル設定"
+            required_fields:
+              - name: "critical"
+                type: "number"
+                description: "クリティカルエラーの対応時間（分）"
+                default: 15
+              - name: "high"
+                type: "number"
+                description: "重要エラーの対応時間（分）"
+                default: 60
+              - name: "low"
+                type: "number"
+                description: "軽微なエラーの対応時間（分）"
+                default: 1440
+          - name: "recovery_strategies"
             type: "object"
-            description: "ルーティング設定"
-          - name: "qos"
-            type: "object"
-            description: "品質設定"
+            description: "リカバリー戦略"
+            required_fields:
+              - name: "auto_retry"
+                type: "object"
+                description: "自動リトライ設定"
+              - name: "fallback_action"
+                type: "object"
+                description: "フォールバックアクション設定"
+              - name: "manual_intervention"
+                type: "object"
+                description: "手動介入設定"
+      - name: "capabilities"
+        type: "object"
+        description: "サーバー機能"
+        required_fields:
+          - name: "resources"
+            type: "boolean"
+            description: "リソース機能の有効化"
+          - name: "tools"
+            type: "boolean"
+            description: "ツール機能の有効化"
+          - name: "prompts"
+            type: "boolean"
+            description: "プロンプト機能の有効化"
   
   process:
     description: "プロセス実行コンテキスト"
@@ -309,6 +388,17 @@ output_management_schema:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク仕様への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "MCPプロトコル標準定義の追加（トランスポート層、JSON-RPCメッセージフォーマット）"
+      - "MCPサーバー基本設定の追加（command, args, disabled, alwaysAllow）"
+      - "エラー重要度レベルと対応時間の標準化"
+      - "サーバー機能（capabilities）の定義追加"
+      - "process_schema.yamlとvalidation_schema.yamlとの整合性確保"
+      - "バージョンを1.2.0に更新"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "MCPサーバー対応と非同期処理の強化"
