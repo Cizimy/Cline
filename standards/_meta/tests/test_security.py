@@ -260,7 +260,7 @@ class SecurityTester:
         # 必須の認証設定をチェック
         required_auth_fields = [
             'auth_type', 'token_expiration', 'state_management',
-            'session_handling', 'error_handling'
+            'session_handling', 'error_handling', 'remote_config'
         ]
         for field in required_auth_fields:
             if field not in auth_config:
@@ -297,7 +297,6 @@ class SecurityTester:
         if auth_type not in ['none', 'oauth2', 'token']:
             self.add_error(f"セキュリティエラー: 未対応の認証方式 {auth_type}", "critical")
             is_valid = False
-
         # OAuth2設定の詳細検証
         if auth_type == 'oauth2':
             oauth2_config = auth_config.get('oauth2', {})
@@ -308,6 +307,97 @@ class SecurityTester:
         elif auth_type == 'token':
             token_config = auth_config.get('token', {})
             if not self._validate_token_config(token_config):
+                is_valid = False
+
+        # リモートMCP接続の検証
+        remote_config = auth_config.get('remote_config', {})
+        if not self._validate_remote_mcp_config(remote_config):
+            is_valid = False
+
+        return is_valid
+
+    def _validate_remote_mcp_config(self, config: Dict[str, Any]) -> bool:
+        """リモートMCP接続設定の検証"""
+        is_valid = True
+
+        # サービスディスカバリー設定の検証
+        discovery_config = config.get('service_discovery', {})
+        if not discovery_config:
+            self.add_error("リモートMCP設定エラー: サービスディスカバリー設定が欠落", "critical")
+            return False
+
+        # サービスディスカバリー方式の検証
+        discovery_methods = discovery_config.get('methods', [])
+        if not discovery_methods:
+            self.add_error("リモートMCP設定エラー: サービスディスカバリー方式が未定義", "critical")
+            is_valid = False
+        else:
+            valid_methods = {'dns', 'http', 'manual'}
+            configured_methods = set(discovery_methods)
+            if not configured_methods.intersection(valid_methods):
+                self.add_error(
+                    f"リモートMCP設定エラー: 無効なサービスディスカバリー方式 {discovery_methods}",
+                    "critical"
+                )
+                is_valid = False
+
+            # DNS方式の検証
+            if 'dns' in discovery_methods:
+                dns_config = discovery_config.get('dns', {})
+                if not dns_config.get('secure_lookup', True):
+                    self.add_error("セキュリティリスク: 安全でないDNSルックアップ", "critical")
+                    is_valid = False
+
+            # HTTP方式の検証
+            if 'http' in discovery_methods:
+                http_config = discovery_config.get('http', {})
+                if not http_config.get('use_https', True):
+                    self.add_error("セキュリティリスク: HTTPSが無効", "critical")
+                    is_valid = False
+                if not http_config.get('verify_ssl', True):
+                    self.add_error("セキュリティリスク: SSL検証が無効", "critical")
+                    is_valid = False
+
+        # ステートレス操作の検証
+        stateless_config = config.get('stateless', {})
+        if not stateless_config:
+            self.add_error("リモートMCP設定エラー: ステートレス設定が欠落", "critical")
+            is_valid = False
+        else:
+            # ステートレス認証の検証
+            if not stateless_config.get('auth_per_request', True):
+                self.add_error("セキュリティリスク: リクエストごとの認証が無効", "critical")
+                is_valid = False
+
+            # セッション管理の検証
+            session_config = stateless_config.get('session_handling', {})
+            if session_config.get('store_state', False):
+                self.add_error("セキュリティリスク: ステートレスモードでの状態保持", "critical")
+                is_valid = False
+
+        # 接続タイムアウトの検証
+        timeouts = config.get('timeouts', {})
+        if not timeouts:
+            self.add_error("リモートMCP設定エラー: タイムアウト設定が欠落", "critical")
+            is_valid = False
+        else:
+            connect_timeout = timeouts.get('connect', 0)
+            if connect_timeout <= 0 or connect_timeout > 30:
+                self.add_error(
+                    f"セキュリティリスク: 不適切な接続タイムアウト値 ({connect_timeout}秒)",
+                    "critical"
+                )
+                is_valid = False
+
+        # リトライ設定の検証
+        retry_config = config.get('retry', {})
+        if retry_config:
+            max_retries = retry_config.get('max_attempts', 0)
+            if max_retries > 3:
+                self.add_error(
+                    f"セキュリティリスク: 過剰なリトライ回数 ({max_retries}回)",
+                    "critical"
+                )
                 is_valid = False
 
         return is_valid

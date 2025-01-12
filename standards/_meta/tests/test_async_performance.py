@@ -726,6 +726,129 @@ async def simulate_prompt_fallback(self) -> None:
     if random.random() < 0.03:  # 3%の確率で失敗
         raise Exception("プロンプト代替機能エラー")
 
+async def test_remote_mcp_performance(self, test_duration: int = 60) -> Dict[str, Any]:
+    """リモートMCP接続のパフォーマンステスト（MCPフレームワーク標準v1.2.0準拠）"""
+    metrics = {
+        "discovery": {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0
+        },
+        "authentication": {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0
+        },
+        "stateless": {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0
+        }
+    }
+
+    start_time = time.time()
+    end_time = start_time + test_duration
+
+    while time.time() < end_time:
+        # サービスディスカバリーのテスト
+        for method in ['dns', 'http', 'manual']:
+            start_request = time.time()
+            try:
+                await self.simulate_service_discovery(method)
+                metrics["discovery"]["success_count"] += 1
+                metrics["discovery"]["response_times"].append(time.time() - start_request)
+            except Exception as e:
+                metrics["discovery"]["error_count"] += 1
+                self.add_error(f"サービスディスカバリーエラー ({method}): {str(e)}")
+
+        # 認証処理のテスト
+        for auth_type in ['oauth2', 'token']:
+            start_request = time.time()
+            try:
+                await self.simulate_authentication(auth_type)
+                metrics["authentication"]["success_count"] += 1
+                metrics["authentication"]["response_times"].append(time.time() - start_request)
+            except Exception as e:
+                metrics["authentication"]["error_count"] += 1
+                self.add_error(f"認証エラー ({auth_type}): {str(e)}")
+
+        # ステートレス操作のテスト
+        start_request = time.time()
+        try:
+            await self.simulate_stateless_operation()
+            metrics["stateless"]["success_count"] += 1
+            metrics["stateless"]["response_times"].append(time.time() - start_request)
+        except Exception as e:
+            metrics["stateless"]["error_count"] += 1
+            self.add_error(f"ステートレス操作エラー: {str(e)}")
+
+    # メトリクスの検証
+    for category, data in metrics.items():
+        total_requests = data["success_count"] + data["error_count"]
+        if total_requests > 0:
+            success_rate = (data["success_count"] / total_requests) * 100
+            if success_rate < 95:
+                self.add_error(
+                    f"{category}の低い成功率: {success_rate:.2f}%",
+                    "critical"
+                )
+
+            if data["response_times"]:
+                p95_latency = statistics.quantiles(data["response_times"], n=20)[18]
+                if category == "discovery" and p95_latency > 2.0:
+                    self.add_error(
+                        f"サービスディスカバリーの高レイテンシー: {p95_latency:.2f}秒",
+                        "critical"
+                    )
+                elif category == "authentication" and p95_latency > 1.0:
+                    self.add_error(
+                        f"認証処理の高レイテンシー: {p95_latency:.2f}秒",
+                        "critical"
+                    )
+                elif category == "stateless" and p95_latency > 0.5:
+                    self.add_error(
+                        f"ステートレス操作の高レイテンシー: {p95_latency:.2f}秒",
+                        "critical"
+                    )
+
+    return metrics
+
+async def simulate_service_discovery(self, method: str) -> None:
+    """サービスディスカバリーのシミュレーション"""
+    await asyncio.sleep(0.1)  # 基本的な遅延
+
+    # 方式別の追加遅延とエラー率
+    if method == 'dns':
+        await asyncio.sleep(0.2)  # DNS解決の追加遅延
+        if random.random() < 0.05:  # 5%のエラー率
+            raise Exception("DNS解決エラー")
+    elif method == 'http':
+        await asyncio.sleep(0.3)  # HTTP通信の追加遅延
+        if random.random() < 0.08:  # 8%のエラー率
+            raise Exception("HTTP通信エラー")
+    elif method == 'manual':
+        if random.random() < 0.02:  # 2%のエラー率
+            raise Exception("手動設定エラー")
+
+async def simulate_authentication(self, auth_type: str) -> None:
+    """認証処理のシミュレーション"""
+    await asyncio.sleep(0.1)  # 基本的な遅延
+
+    if auth_type == 'oauth2':
+        await asyncio.sleep(0.3)  # OAuth2の追加遅延
+        if random.random() < 0.05:  # 5%のエラー率
+            raise Exception("OAuth2認証エラー")
+    elif auth_type == 'token':
+        await asyncio.sleep(0.1)  # トークン認証の追加遅延
+        if random.random() < 0.03:  # 3%のエラー率
+            raise Exception("トークン認証エラー")
+
+async def simulate_stateless_operation(self) -> None:
+    """ステートレス操作のシミュレーション"""
+    await asyncio.sleep(0.05)  # 基本的な遅延
+    if random.random() < 0.02:  # 2%のエラー率
+        raise Exception("ステートレス操作エラー")
+
 async def main():
     if len(sys.argv) != 2:
         print("使用方法: python test_async_performance.py <path_to_meta_dir>")
@@ -746,10 +869,15 @@ async def main():
     print("サンプリング機能のパフォーマンステストを実行中...")
     sampling_metrics = await tester.test_sampling_performance()
 
+    # リモートMCP接続のパフォーマンステスト
+    print("リモートMCP接続のパフォーマンステストを実行中...")
+    remote_metrics = await tester.test_remote_mcp_performance()
+
     # メトリクスの結合
     combined_metrics = {
         **performance_metrics,
-        "sampling": sampling_metrics
+        "sampling": sampling_metrics,
+        "remote_mcp": remote_metrics
     }
 
     # レポート生成
