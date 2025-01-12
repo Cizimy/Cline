@@ -1,5 +1,5 @@
-# 統一メトリクス定義
-version: "1.0.0"
+# 統一メトリクス定義（MCPフレームワーク標準準拠）
+version: "1.2.0"
 type: "unified_metrics"
 
 # 基本メトリクス定義
@@ -10,8 +10,7 @@ base_metrics:
       description: "CPU使用率（%）"
       threshold:
         critical: 80
-        warning: 70
-        info: 60
+        non_critical: 70
       unit: "percent"
       
     memory_usage:
@@ -19,8 +18,7 @@ base_metrics:
       description: "メモリ使用率（%）"
       threshold:
         critical: 90
-        warning: 80
-        info: 70
+        non_critical: 80
       unit: "percent"
       
     disk_usage:
@@ -28,8 +26,7 @@ base_metrics:
       description: "ディスク使用率（%）"
       threshold:
         critical: 85
-        warning: 75
-        info: 65
+        non_critical: 75
       unit: "percent"
 
   performance:
@@ -38,8 +35,7 @@ base_metrics:
       description: "応答時間"
       threshold:
         critical: 1000  # ms
-        warning: 500
-        info: 200
+        non_critical: 500
       unit: "milliseconds"
       
     throughput:
@@ -47,8 +43,7 @@ base_metrics:
       description: "スループット"
       threshold:
         critical: 1000  # req/s
-        warning: 800
-        info: 500
+        non_critical: 800
       unit: "requests_per_second"
       
     error_rate:
@@ -56,8 +51,7 @@ base_metrics:
       description: "エラー率"
       threshold:
         critical: 0.01  # 1%
-        warning: 0.005
-        info: 0.001
+        non_critical: 0.005
       unit: "percent"
 
   resource:
@@ -66,8 +60,7 @@ base_metrics:
       description: "接続数"
       threshold:
         critical: 1000
-        warning: 800
-        info: 500
+        non_critical: 800
       unit: "connections"
       
     queue_length:
@@ -75,14 +68,13 @@ base_metrics:
       description: "キュー長"
       threshold:
         critical: 1000
-        warning: 800
-        info: 500
+        non_critical: 800
       unit: "messages"
 
-# アラート定義
+# アラート定義（MCPフレームワーク標準準拠）
 alert_policies:
   critical:
-    description: "即時対応（15分以内）"
+    description: "システム停止、セキュリティ違反、データ損失リスク（15分以内の対応）"
     notification:
       channels: ["slack", "email", "sms"]
       retry_interval: 5  # minutes
@@ -93,27 +85,16 @@ alert_policies:
       retry_interval: 1  # minutes
       backoff_multiplier: 1.5
 
-  warning:
-    description: "1時間以内の対応"
+  non_critical:
+    description: "一般的なエラー、パフォーマンス低下、軽微な不具合（60分以内の対応）"
     notification:
       channels: ["slack", "email"]
-      retry_interval: 15
-      escalation_after: 30
+      retry_interval: 15  # minutes
+      escalation_after: 30  # minutes
     auto_recovery:
       enabled: true
       max_retries: 3
-      retry_interval: 5
-      backoff_multiplier: 1.5
-
-  info:
-    description: "24時間以内の対応"
-    notification:
-      channels: ["slack"]
-      retry_interval: 60
-    auto_recovery:
-      enabled: true
-      max_retries: 5
-      retry_interval: 15
+      retry_interval: 5  # minutes
       backoff_multiplier: 1.5
 
 # レポート形式
@@ -138,7 +119,7 @@ report_format:
     
     threshold_level:
       type: "string"
-      enum: ["critical", "warning", "info", "normal"]
+      enum: ["critical", "non_critical", "normal"]
       required: true
     
     labels:
@@ -187,6 +168,16 @@ storage_config:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク標準への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "バージョンを1.2.0に更新"
+      - "エラー重要度を2段階（critical/non-critical）に簡素化"
+      - "アラートポリシーをMCPフレームワーク標準に準拠"
+      - "threshold_levelの列挙値を更新"
+
   - version: "1.0.0"
     date: "2025-01-11"
     description: "統一メトリクス定義の初期バージョン"

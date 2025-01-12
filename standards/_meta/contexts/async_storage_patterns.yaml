@@ -1,5 +1,5 @@
-# 非同期ストレージパターン定義
-version: "1.0.0"
+# 非同期ストレージパターン定義（MCPフレームワーク標準準拠）
+version: "1.2.0"
 type: "async_storage_patterns"
 
 # チェックポイントストレージパターン
@@ -87,9 +87,15 @@ pattern_storage:
       - name: "pattern_hit_rate"
         type: "gauge"
         description: "パターンのヒット率"
+        threshold:
+          critical: 0.5  # 50%以下は重大
+          non_critical: 0.7  # 70%以下は要注意
       - name: "pattern_update_frequency"
         type: "counter"
         description: "パターン更新頻度"
+        threshold:
+          critical: 100  # 100回/秒以上は重大
+          non_critical: 50  # 50回/秒以上は要注意
 
   file:
     type: "persistent"
@@ -107,9 +113,17 @@ pattern_storage:
       - name: "pattern_file_size"
         type: "gauge"
         description: "パターンファイルのサイズ"
+        threshold:
+          critical: 1000  # 1GB以上は重大
+          non_critical: 500  # 500MB以上は要注意
+        unit: "MB"
       - name: "pattern_read_latency"
         type: "histogram"
         description: "パターン読み取り遅延"
+        threshold:
+          critical: 1000  # 1秒以上は重大
+          non_critical: 500  # 500ms以上は要注意
+        unit: "milliseconds"
 
   database:
     type: "persistent"
@@ -129,9 +143,17 @@ pattern_storage:
       - name: "pattern_query_time"
         type: "histogram"
         description: "パターンクエリ時間"
+        threshold:
+          critical: 1000  # 1秒以上は重大
+          non_critical: 500  # 500ms以上は要注意
+        unit: "milliseconds"
       - name: "pattern_storage_size"
         type: "gauge"
         description: "パターンストレージサイズ"
+        threshold:
+          critical: 10000  # 10GB以上は重大
+          non_critical: 5000  # 5GB以上は要注意
+        unit: "MB"
 
 # 進捗追跡の標準フォーマット
 progress_tracking:
@@ -147,12 +169,11 @@ progress_tracking:
         type: "string"
         required: true
         enum:
-          - "not_started"
-          - "in_progress"
-          - "completed"
-          - "failed"
-          - "paused"
-        description: "タスクの現在の状態"
+          - "initializing"
+          - "ready"
+          - "running"
+          - "error"
+        description: "タスクの現在の状態（MCPフレームワーク標準準拠）"
       
       progress:
         type: "number"
@@ -222,6 +243,16 @@ progress_tracking:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク標準への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "バージョンを1.2.0に更新"
+      - "進捗追跡のステータスをMCPフレームワーク標準の4段階に統一"
+      - "メトリクスにcritical/non-criticalの2段階重要度を追加"
+      - "メトリクスにthresholdとunit定義を追加"
+
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン - 非同期ストレージパターンの標準化"
