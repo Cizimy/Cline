@@ -1,6 +1,6 @@
 # プロセス定義スキーマ
 
-version: "1.1.0"
+version: "1.1.1"
 type: "process_schema"
 
 # プロセスタイプの定義
@@ -70,21 +70,77 @@ process_types:
         type: "string"
         description: "サーバーの種類"
         enum: ["python", "node", "custom"]
+      - name: "base_config"
+        type: "object"
+        description: "基本設定"
+        required_fields:
+          - name: "command"
+            type: "string"
+            description: "サーバー実行コマンド"
+          - name: "args"
+            type: "array"
+            description: "コマンド引数"
+          - name: "disabled"
+            type: "boolean"
+            description: "無効化フラグ"
+            default: false
+          - name: "alwaysAllow"
+            type: "array"
+            description: "常に許可する操作"
+            default: []
       - name: "runtime_requirements"
         type: "object"
         description: "実行時要件"
+        required_fields:
+          - name: "node_version"
+            type: "string"
+            description: "Node.jsバージョン要件"
+          - name: "python_version"
+            type: "string"
+            description: "Pythonバージョン要件"
+          - name: "environment_vars"
+            type: "object"
+            description: "必要な環境変数"
       - name: "authentication"
         type: "object"
         description: "認証設定"
-      - name: "api_endpoints"
-        type: "array"
-        description: "提供するAPIエンドポイント"
-      - name: "health_check"
+        required_fields:
+          - name: "auth_type"
+            type: "string"
+            enum: ["none", "oauth", "token", "key"]
+          - name: "config_path"
+            type: "string"
+            description: "認証設定ファイルのパス"
+          - name: "env_vars"
+            type: "object"
+            description: "認証用環境変数"
+      - name: "transport"
         type: "object"
-        description: "ヘルスチェック設定"
-      - name: "scaling_config"
+        description: "トランスポート層設定"
+        required_fields:
+          - name: "type"
+            type: "string"
+            enum: ["stdio", "http_sse"]
+            description: "トランスポートタイプ"
+          - name: "timeout"
+            type: "number"
+            description: "タイムアウト設定（秒）"
+          - name: "retry"
+            type: "object"
+            description: "リトライ設定"
+      - name: "capabilities"
         type: "object"
-        description: "スケーリング設定"
+        description: "サーバー機能"
+        required_fields:
+          - name: "resources"
+            type: "boolean"
+            description: "リソース機能の有効化"
+          - name: "tools"
+            type: "boolean"
+            description: "ツール機能の有効化"
+          - name: "prompts"
+            type: "boolean"
+            description: "プロンプト機能の有効化"
 
   async_process:
     description: "非同期プロセス用"
@@ -157,19 +213,69 @@ async_state_schema:
 ipc_schema:
   type: "object"
   required_fields:
-    - name: "communication_type"
+    - name: "transport_type"
       type: "string"
-      enum: ["event", "message", "stream", "shared_memory"]
-      description: "通信方式"
-    - name: "message_format"
+      enum: ["stdio", "http_sse"]
+      description: "MCPトランスポート方式"
+    - name: "jsonrpc_message"
       type: "object"
-      description: "メッセージフォーマット"
-    - name: "routing"
+      description: "JSON-RPCメッセージ定義"
+      required_fields:
+        - name: "jsonrpc"
+          type: "string"
+          enum: ["2.0"]
+          description: "JSON-RPCバージョン"
+        - name: "id"
+          type: "string"
+          description: "リクエスト/レスポンスID"
+          optional: true
+        - name: "method"
+          type: "string"
+          description: "メソッド名"
+          optional: true
+        - name: "params"
+          type: "object"
+          description: "パラメータ"
+          optional: true
+        - name: "result"
+          type: "object"
+          description: "レスポンス結果"
+          optional: true
+        - name: "error"
+          type: "object"
+          description: "エラー情報"
+          optional: true
+          required_fields:
+            - name: "code"
+              type: "number"
+              description: "エラーコード"
+            - name: "message"
+              type: "string"
+              description: "エラーメッセージ"
+            - name: "data"
+              type: "object"
+              description: "追加のエラーデータ"
+              optional: true
+    - name: "timeout"
       type: "object"
-      description: "ルーティング設定"
-    - name: "qos"
+      description: "タイムアウト設定"
+      required_fields:
+        - name: "request"
+          type: "number"
+          description: "リクエストタイムアウト（秒）"
+        - name: "connection"
+          type: "number"
+          description: "接続タイムアウト（秒）"
+    - name: "retry_policy"
       type: "object"
-      description: "品質設定"
+      description: "リトライポリシー"
+      required_fields:
+        - name: "max_attempts"
+          type: "number"
+          description: "最大リトライ回数"
+        - name: "interval"
+          type: "number"
+          description: "リトライ間隔（秒）"
 
 # 入力パラメータの定義
 parameter_schema:
@@ -232,18 +338,50 @@ artifact_schema:
 error_handling_schema:
   type: "object"
   required_fields:
-    - name: "error_type"
+    - name: "error_code"
+      type: "number"
+      description: "MCPプロトコル標準エラーコード"
+      enum:
+        - -32700  # Parse error
+        - -32600  # Invalid request
+        - -32601  # Method not found
+        - -32602  # Invalid params
+        - -32603  # Internal error
+        - -32000  # Server error
+    - name: "error_message"
       type: "string"
-      description: "エラーの種類"
+      description: "エラーメッセージ"
+    - name: "error_data"
+      type: "object"
+      description: "追加のエラー情報"
+      optional: true
     - name: "severity"
       type: "string"
-      enum: ["critical", "error", "warning", "info"]
-    - name: "recovery_steps"
-      type: "array"
-      description: "回復手順"
-    - name: "notification"
+      enum: ["critical", "high", "low"]
+      description: "エラーの重要度（MCPの標準定義に準拠）"
+    - name: "recovery_strategy"
+      type: "object"
+      description: "リカバリー戦略"
+      required_fields:
+        - name: "retry_count"
+          type: "number"
+          description: "リトライ回数"
+        - name: "retry_interval"
+          type: "number"
+          description: "リトライ間隔（秒）"
+        - name: "fallback_action"
+          type: "string"
+          description: "フォールバックアクション"
+    - name: "notification_config"
       type: "object"
       description: "通知設定"
+      required_fields:
+        - name: "notify_on"
+          type: "array"
+          description: "通知トリガー条件"
+        - name: "notification_channels"
+          type: "array"
+          description: "通知チャンネル"
 
 # プロセス実行コンテキストの定義
 context_schema:
@@ -281,6 +419,17 @@ metrics_schema:
 
 # 更新履歴
 history:
+  - version: "1.1.1"
+    date: "2025-01-12"
+    description: "MCPフレームワーク仕様準拠の強化"
+    author: "Cline AI"
+    changes:
+      - "MCPサーバー設定の詳細化（command, args, disabled, alwaysAllow）"
+      - "認証情報とファイル管理の構造化"
+      - "トランスポート層設定の追加"
+      - "MCPプロトコル標準エラーコードの導入"
+      - "JSON-RPCメッセージフォーマットの定義追加"
+      - "タイムアウトとリトライポリシーの強化"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "MCPサーバー対応と非同期処理の強化"
