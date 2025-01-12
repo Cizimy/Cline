@@ -2,6 +2,17 @@
 version: "1.2.0"
 type: "async_storage_patterns"
 
+required_fields:
+  - name: "checkpoint_storage"
+    type: "object"
+    description: "チェックポイントストレージパターン"
+  - name: "pattern_storage"
+    type: "object"
+    description: "パターンストレージ定義"
+  - name: "progress_tracking"
+    type: "object"
+    description: "進捗追跡の標準フォーマット"
+
 # チェックポイントストレージパターン
 checkpoint_storage:
   patterns:

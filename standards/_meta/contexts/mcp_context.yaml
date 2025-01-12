@@ -3,6 +3,35 @@
 version: "1.2.0"
 type: "mcp_context"
 
+required_fields:
+  - name: "protocol_standard"
+    type: "object"
+    description: "MCPプロトコル標準定義"
+  - name: "server_config"
+    type: "object"
+    description: "サーバー基本設定"
+  - name: "capabilities"
+    type: "object"
+    description: "サーバー機能定義"
+  - name: "server_definition"
+    type: "object"
+    description: "サーバー定義"
+  - name: "required_knowledge"
+    type: "object"
+    description: "必要な知識ベース"
+  - name: "state_tracking"
+    type: "object"
+    description: "状態追跡"
+  - name: "async_processing"
+    type: "object"
+    description: "非同期処理管理"
+  - name: "ipc_configuration"
+    type: "object"
+    description: "プロセス間通信設定"
+  - name: "error_management"
+    type: "object"
+    description: "エラー管理定義"
+
 # MCPプロトコル標準定義
 protocol_standard:
   transport:

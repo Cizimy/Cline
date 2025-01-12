@@ -3,6 +3,29 @@
 version: "1.2.0"  # MCPフレームワーク標準準拠バージョン
 type: "process_context"
 
+required_fields:
+  - name: "execution_environment"
+    type: "object"
+    description: "プロセス実行環境"
+  - name: "execution_phases"
+    type: "object"
+    description: "実行フェーズ定義"
+  - name: "decision_criteria"
+    type: "object"
+    description: "判断基準"
+  - name: "state_management"
+    type: "object"
+    description: "状態管理"
+  - name: "process_dependencies"
+    type: "object"
+    description: "プロセス依存関係"
+  - name: "output_management"
+    type: "object"
+    description: "出力管理"
+  - name: "process_interaction"
+    type: "object"
+    description: "プロセス間連携"
+
 # プロセス実行環境
 execution_environment:
   working_directory: "standards"

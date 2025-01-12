@@ -2,6 +2,20 @@
 version: "1.2.0"
 type: "unified_metrics"
 
+required_fields:
+  - name: "base_metrics"
+    type: "object"
+    description: "基本メトリクス定義"
+  - name: "alert_policies"
+    type: "object"
+    description: "アラート定義"
+  - name: "report_format"
+    type: "object"
+    description: "レポート形式"
+  - name: "storage_config"
+    type: "object"
+    description: "保存設定"
+
 # 基本メトリクス定義
 base_metrics:
   system:

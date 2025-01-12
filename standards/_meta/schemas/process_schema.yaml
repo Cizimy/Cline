@@ -3,6 +3,20 @@
 version: "1.2.0"
 type: "process_schema"
 
+required_fields:
+  - name: "process_types"
+    type: "object"
+    description: "プロセスタイプの定義"
+  - name: "process_dependency_schema"
+    type: "object"
+    description: "プロセス間依存関係の定義"
+  - name: "async_state_schema"
+    type: "object"
+    description: "非同期処理の状態管理"
+  - name: "ipc_schema"
+    type: "object"
+    description: "プロセス間通信の定義"
+
 # プロセスタイプの定義
 process_types:
   setup:
@@ -285,67 +299,72 @@ async_state_schema:
 ipc_schema:
   type: "object"
   required_fields:
-    - name: "transport_type"
+    - transport_type
+    - jsonrpc_message
+    - timeout
+    - retry_policy
+  properties:
+    transport_type:
       type: "string"
       enum: ["stdio", "http_sse", "remote"]
       description: "MCPトランスポート方式"
-    - name: "jsonrpc_message"
+    jsonrpc_message:
       type: "object"
       description: "JSON-RPCメッセージ定義"
-      required_fields:
-        - name: "jsonrpc"
+      properties:
+        jsonrpc:
           type: "string"
           enum: ["2.0"]
           description: "JSON-RPCバージョン"
-        - name: "id"
+        id:
           type: "string"
           description: "リクエスト/レスポンスID"
           optional: true
-        - name: "method"
+        method:
           type: "string"
           description: "メソッド名"
           optional: true
-        - name: "params"
+        params:
           type: "object"
           description: "パラメータ"
           optional: true
-        - name: "result"
+        result:
           type: "object"
           description: "レスポンス結果"
           optional: true
-        - name: "error"
+        error:
           type: "object"
           description: "エラー情報"
           optional: true
-          required_fields:
-            - name: "code"
+          properties:
+            code:
               type: "number"
               description: "エラーコード"
-            - name: "message"
+            message:
               type: "string"
               description: "エラーメッセージ"
-            - name: "data"
+            data:
               type: "object"
               description: "追加のエラーデータ"
               optional: true
-    - name: "timeout"
+    timeout:
       type: "object"
       description: "タイムアウト設定"
-      required_fields:
-        - name: "request"
+      properties:
+        request:
           type: "number"
           description: "リクエストタイムアウト（秒）"
-        - name: "connection"
+        connection:
           type: "number"
           description: "接続タイムアウト（秒）"
-    - name: "retry_policy"
+    retry_policy:
       type: "object"
       description: "リトライポリシー"
-      required_fields:
-        - name: "max_attempts"
+      properties:
+        max_attempts:
           type: "number"
           description: "最大リトライ回数"
-        - name: "interval"
+        interval:
           type: "number"
           description: "リトライ間隔（秒）"
 
