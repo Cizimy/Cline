@@ -749,6 +749,7 @@ class SchemaValidator:
                 self.validate_capabilities(data, file_path)
                 self.validate_authentication(data, file_path)
                 self.validate_ipc(data, file_path)
+                self.validate_sampling(data, file_path)  # サンプリング機能の検証を追加
 
         return self.error_count == 0
 

@@ -559,21 +559,41 @@ class AsyncPerformanceTester:
         })
         self.warning_count += 1
 
-    def generate_report(self, performance_metrics: Dict[str, Any]) -> str:
+    def generate_report(self, metrics: Dict[str, Any]) -> str:
         report = []
         report.append("# 非同期処理・パフォーマンステストレポート")
         report.append(f"実行日時: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        report.append("\n## パフォーマンスメトリクス:")
-        report.append(f"- スループット: {performance_metrics['throughput']:.2f} req/sec")
-        report.append(f"- エラー数: {performance_metrics['error_counts']}")
+        # 基本パフォーマンスメトリクス
+        report.append("\n## 基本パフォーマンスメトリクス:")
+        report.append(f"- スループット: {metrics['throughput']:.2f} req/sec")
+        report.append(f"- エラー数: {metrics['error_counts']}")
         
-        if performance_metrics['response_times']:
-            p50, p95, p99 = statistics.quantiles(performance_metrics['response_times'], n=100)[49:100:2]
+        if metrics['response_times']:
+            p50, p95, p99 = statistics.quantiles(metrics['response_times'], n=100)[49:100:2]
             report.append(f"- レイテンシー:")
             report.append(f"  - P50: {p50:.3f} sec")
             report.append(f"  - P95: {p95:.3f} sec")
             report.append(f"  - P99: {p99:.3f} sec")
+
+        # サンプリング機能のメトリクス
+        if 'sampling' in metrics:
+            report.append("\n## サンプリング機能メトリクス:")
+            for mode, data in metrics['sampling'].items():
+                total_requests = data['success_count'] + data['error_count']
+                if total_requests > 0:
+                    success_rate = (data['success_count'] / total_requests) * 100
+                    report.append(f"\n### {mode}:")
+                    report.append(f"- 成功率: {success_rate:.2f}%")
+                    report.append(f"- 成功数: {data['success_count']}")
+                    report.append(f"- エラー数: {data['error_count']}")
+                    
+                    if data['response_times']:
+                        p50, p95, p99 = statistics.quantiles(data['response_times'], n=100)[49:100:2]
+                        report.append(f"- レイテンシー:")
+                        report.append(f"  - P50: {p50:.3f} sec")
+                        report.append(f"  - P95: {p95:.3f} sec")
+                        report.append(f"  - P99: {p99:.3f} sec")
 
         report.append(f"\n## テスト結果サマリー:")
         report.append(f"- エラー数: {self.error_count}")
@@ -587,6 +607,124 @@ class AsyncPerformanceTester:
             report.append("\n問題は検出されませんでした。")
 
         return "\n".join(report)
+
+async def test_sampling_performance(self, test_duration: int = 60) -> Dict[str, Any]:
+    """サンプリング機能のパフォーマンステスト（MCPフレームワーク標準v1.2.0準拠）"""
+    # メトリクス閾値の取得
+    sampling_metrics = self.metrics_config.get('base_metrics', {}).get('sampling', {})
+    if not sampling_metrics:
+        self.add_error("サンプリングメトリクス定義が見つかりません", "critical")
+        return {}
+
+    # 閾値の取得
+    throughput_thresholds = sampling_metrics.get('throughput', {}).get('threshold', {})
+    latency_thresholds = sampling_metrics.get('latency', {}).get('threshold', {})
+    fallback_rate_thresholds = sampling_metrics.get('fallback_rate', {}).get('threshold', {})
+
+    metrics = {
+        "llm_sampling": {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0
+        },
+        "tool_fallback": {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0
+        },
+        "prompt_fallback": {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0
+        }
+    }
+
+    start_time = time.time()
+    end_time = start_time + test_duration
+
+    while time.time() < end_time:
+        # LLMサンプリングのテスト
+        start_request = time.time()
+        try:
+            await self.simulate_llm_sampling()
+            metrics["llm_sampling"]["success_count"] += 1
+            metrics["llm_sampling"]["response_times"].append(time.time() - start_request)
+        except Exception as e:
+            metrics["llm_sampling"]["error_count"] += 1
+            # 代替機能のテスト
+            try:
+                # ツールベースの代替機能
+                start_fallback = time.time()
+                await self.simulate_tool_fallback()
+                metrics["tool_fallback"]["success_count"] += 1
+                metrics["tool_fallback"]["response_times"].append(time.time() - start_fallback)
+            except Exception:
+                metrics["tool_fallback"]["error_count"] += 1
+                # プロンプトベースの代替機能
+                try:
+                    start_prompt = time.time()
+                    await self.simulate_prompt_fallback()
+                    metrics["prompt_fallback"]["success_count"] += 1
+                    metrics["prompt_fallback"]["response_times"].append(time.time() - start_prompt)
+                except Exception:
+                    metrics["prompt_fallback"]["error_count"] += 1
+
+    # メトリクスの計算と検証
+    total_time = time.time() - start_time
+    for mode, data in metrics.items():
+        total_requests = data["success_count"] + data["error_count"]
+        if total_requests > 0:
+            # スループットの計算と検証
+            throughput = data["success_count"] / total_time
+            if throughput < throughput_thresholds.get('critical', 10):
+                self.add_error(
+                    f"{mode}のクリティカルなスループット低下: {throughput:.2f} req/sec",
+                    "critical"
+                )
+            elif throughput < throughput_thresholds.get('warning', 20):
+                self.add_warning(f"{mode}のスループット低下: {throughput:.2f} req/sec")
+
+            # レイテンシーの分析
+            if data["response_times"]:
+                p95_latency = statistics.quantiles(data["response_times"], n=20)[18]
+                if p95_latency > latency_thresholds.get('critical', 2000):
+                    self.add_error(
+                        f"{mode}のクリティカルな高レイテンシー (P95): {p95_latency:.2f} ms",
+                        "critical"
+                    )
+                elif p95_latency > latency_thresholds.get('warning', 1000):
+                    self.add_warning(f"{mode}の高レイテンシー (P95): {p95_latency:.2f} ms")
+
+            # 代替機能使用率の検証
+            if mode != "llm_sampling":
+                fallback_rate = data["success_count"] / total_requests
+                if fallback_rate > fallback_rate_thresholds.get('critical', 0.3):
+                    self.add_error(
+                        f"{mode}の高い代替機能使用率: {fallback_rate*100:.2f}%",
+                        "critical"
+                    )
+                elif fallback_rate > fallback_rate_thresholds.get('warning', 0.2):
+                    self.add_warning(f"{mode}の高い代替機能使用率: {fallback_rate*100:.2f}%")
+
+    return metrics
+
+async def simulate_llm_sampling(self) -> None:
+    """LLMサンプリングのシミュレーション"""
+    await asyncio.sleep(0.1)  # LLM呼び出しの遅延をシミュレート
+    if random.random() < 0.1:  # 10%の確率で失敗
+        raise Exception("LLMサンプリングエラー")
+
+async def simulate_tool_fallback(self) -> None:
+    """ツールベースの代替機能のシミュレーション"""
+    await asyncio.sleep(0.05)  # ツール実行の遅延をシミュレート
+    if random.random() < 0.05:  # 5%の確率で失敗
+        raise Exception("ツール代替機能エラー")
+
+async def simulate_prompt_fallback(self) -> None:
+    """プロンプトベースの代替機能のシミュレーション"""
+    await asyncio.sleep(0.03)  # プロンプト処理の遅延をシミュレート
+    if random.random() < 0.03:  # 3%の確率で失敗
+        raise Exception("プロンプト代替機能エラー")
 
 async def main():
     if len(sys.argv) != 2:
@@ -604,8 +742,18 @@ async def main():
     print("パフォーマンステストを実行中...")
     performance_metrics = await tester.test_performance()
 
+    # サンプリング機能のパフォーマンステスト
+    print("サンプリング機能のパフォーマンステストを実行中...")
+    sampling_metrics = await tester.test_sampling_performance()
+
+    # メトリクスの結合
+    combined_metrics = {
+        **performance_metrics,
+        "sampling": sampling_metrics
+    }
+
     # レポート生成
-    report = tester.generate_report(performance_metrics)
+    report = tester.generate_report(combined_metrics)
     print(report)
 
     # レポートをファイルに保存

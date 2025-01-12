@@ -125,6 +125,133 @@ class SecurityTester:
             self.add_error(f"脆弱性スキャンエラー {file_path}: {str(e)}")
             return False
 
+    def validate_sampling_config(self, config: Dict[str, Any]) -> bool:
+        """サンプリング機能の設定検証（MCPフレームワーク標準v1.2.0準拠）"""
+        is_valid = True
+
+        if 'sampling' not in config:
+            return True  # サンプリング機能は必須ではない
+
+        sampling_config = config['sampling']
+
+        # 基本設定の検証
+        required_fields = ['enabled', 'mode', 'fallback']
+        for field in required_fields:
+            if field not in sampling_config:
+                self.add_error(f"サンプリング設定エラー: 必須フィールド {field} が欠落", "critical")
+                is_valid = False
+
+        if not is_valid:
+            return False
+
+        # サンプリングモードの検証
+        valid_modes = ['llm', 'tool', 'prompt']
+        mode = sampling_config.get('mode')
+        if mode not in valid_modes:
+            self.add_error(f"無効なサンプリングモード: {mode}", "critical")
+            is_valid = False
+
+        # LLMサンプリング設定の検証
+        if mode == 'llm':
+            llm_config = sampling_config.get('llm_config', {})
+            if not llm_config:
+                self.add_error("LLM設定が欠落", "critical")
+                is_valid = False
+            else:
+                # LLM設定の詳細検証
+                if not self._validate_llm_sampling_config(llm_config):
+                    is_valid = False
+
+        # 代替機能の検証
+        fallback = sampling_config.get('fallback', {})
+        if not fallback:
+            self.add_error("代替機能設定が欠落", "critical")
+            is_valid = False
+        else:
+            # 代替機能の詳細検証
+            if not self._validate_sampling_fallback_config(fallback):
+                is_valid = False
+
+        return is_valid
+
+    def _validate_llm_sampling_config(self, config: Dict[str, Any]) -> bool:
+        """LLMサンプリング設定の詳細検証"""
+        is_valid = True
+
+        # 必須パラメータの検証
+        required_fields = ['model', 'temperature', 'max_tokens']
+        for field in required_fields:
+            if field not in config:
+                self.add_error(f"LLM設定エラー: 必須フィールド {field} が欠落", "critical")
+                is_valid = False
+
+        # パラメータ範囲の検証
+        if 'temperature' in config:
+            temp = config['temperature']
+            if not isinstance(temp, (int, float)) or temp < 0 or temp > 2:
+                self.add_error(f"無効なtemperature値: {temp}", "critical")
+                is_valid = False
+
+        if 'max_tokens' in config:
+            tokens = config['max_tokens']
+            if not isinstance(tokens, int) or tokens < 1:
+                self.add_error(f"無効なmax_tokens値: {tokens}", "critical")
+                is_valid = False
+
+        # セキュリティ設定の検証
+        security = config.get('security', {})
+        if not security.get('input_validation', True):
+            self.add_error("セキュリティリスク: LLM入力検証が無効", "critical")
+            is_valid = False
+        if not security.get('output_sanitization', True):
+            self.add_error("セキュリティリスク: LLM出力サニタイズが無効", "critical")
+            is_valid = False
+
+        return is_valid
+
+    def _validate_sampling_fallback_config(self, config: Dict[str, Any]) -> bool:
+        """サンプリング代替機能の設定検証"""
+        is_valid = True
+
+        fallback_type = config.get('type')
+        if fallback_type not in ['tool', 'prompt']:
+            self.add_error(f"無効な代替機能タイプ: {fallback_type}", "critical")
+            return False
+
+        # ツールベースの代替機能の検証
+        if fallback_type == 'tool':
+            tool_config = config.get('tool_config', {})
+            if not tool_config:
+                self.add_error("ツール設定が欠落", "critical")
+                is_valid = False
+            else:
+                # ツール設定の詳細検証
+                required_tool_fields = ['name', 'parameters']
+                for field in required_tool_fields:
+                    if field not in tool_config:
+                        self.add_error(f"ツール設定エラー: 必須フィールド {field} が欠落", "critical")
+                        is_valid = False
+
+                # ツールのセキュリティ設定
+                security = tool_config.get('security', {})
+                if not security.get('parameter_validation', True):
+                    self.add_error("セキュリティリスク: ツールパラメータ検証が無効", "critical")
+                    is_valid = False
+
+        # プロンプトベースの代替機能の検証
+        elif fallback_type == 'prompt':
+            if 'prompt_template' not in config:
+                self.add_error("プロンプトテンプレートが欠落", "critical")
+                is_valid = False
+            else:
+                # プロンプトのセキュリティ設定
+                security = config.get('security', {})
+                if not security.get('template_validation', True):
+                    self.add_error("セキュリティリスク: プロンプトテンプレート検証が無効", "critical")
+                    is_valid = False
+
+        return is_valid
+
     def validate_authentication_config(self, config: Dict[str, Any]) -> bool:
         """認証設定の検証（MCPフレームワーク標準v1.2.0準拠）"""
         is_valid = True
@@ -575,6 +702,8 @@ class SecurityTester:
                             if not self.validate_rate_limiting(config):
                                 success = False
                             if not self.check_secure_defaults(config):
+                                success = False
+                            if not self.validate_sampling_config(config):
                                 success = False
 
                     except Exception as e:
