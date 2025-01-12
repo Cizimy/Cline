@@ -45,7 +45,7 @@ protocol_standard:
   
   authentication:
     type:
-      enum: ["none", "oauth2", "token"]
+      enum: ["oauth2", "token"]
       description: "認証タイプ"
     config:
       oauth2:
@@ -54,14 +54,107 @@ protocol_standard:
         auth_endpoint: "string"
         refresh_endpoint: "string"
         scopes: ["read", "write"]
+        pkce:
+          enabled: true
+          method: "S256"
+        token_validation:
+          verify_exp: true
+          verify_iss: true
+          verify_aud: true
       token:
         header: "Authorization"
         prefix: "Bearer"
-        refresh_mechanism: {
-          enabled: true,
-          interval: 3600,
+        management:
+          rotation_enabled: true
+          rotation_interval: 30
+          storage:
+            type: "encrypted"
+          encryption:
+            algorithm: "AES-256-GCM"
+        refresh_mechanism:
+          enabled: true
+          interval: 1800
           retry_count: 3
-        }
+    session_handling:
+      cookie_config:
+        secure: true
+        http_only: true
+        same_site: "Strict"
+      storage_config:
+        type: "encrypted"
+      security_config:
+        csrf_protection: true
+    error_handling:
+      sanitize_errors: true
+      log_level: "error"
+    security_config:
+      tls:
+        enabled: true
+        required: true
+        min_version: "1.2"
+        verify_cert: true
+        cipher_suites:
+          - "TLS_AES_128_GCM_SHA256"
+          - "TLS_AES_256_GCM_SHA384"
+          - "TLS_CHACHA20_POLY1305_SHA256"
+        cert_validation:
+          verify_hostname: true
+          verify_expiry: true
+          verify_revocation: true
+  
+      rate_limiting:
+        enabled: true
+        required: true
+        global:
+          max_requests: 100
+          window_size: 60
+          burst_limit: 20
+        per_ip:
+          enabled: true
+          max_requests: 50
+          window_size: 60
+          burst_limit: 10
+        per_token:
+          enabled: true
+          max_requests: 200
+          window_size: 60
+          burst_limit: 30
+        response:
+          status_code: 429
+          retry_after: true
+          headers:
+            - "X-RateLimit-Limit"
+            - "X-RateLimit-Remaining"
+            - "X-RateLimit-Reset"
+  
+      security_headers:
+        required: true
+        headers:
+          X-Content-Type-Options: "nosniff"
+          X-Frame-Options: "DENY"
+          X-XSS-Protection: "1; mode=block"
+          Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+          Content-Security-Policy: "default-src 'self'"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+  
+      token_management:
+        rotation:
+          enabled: true
+          required: true
+          interval: 30
+          grace_period: 5
+        storage:
+          type: "encrypted"
+          encryption:
+            algorithm: "AES-256-GCM"
+            key_rotation: true
+            key_rotation_interval: 720
+        validation:
+          verify_exp: true
+          verify_nbf: true
+          verify_iss: true
+          verify_aud: true
+          verify_jti: true
   
   discovery:
     enabled: true

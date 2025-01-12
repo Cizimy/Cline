@@ -268,16 +268,54 @@ process_interaction:
       backoff: "exponential"
     authentication:
       type:
-        enum: ["none", "oauth2", "token"]
+        enum: ["oauth2", "token"]
         description: "認証タイプ"
       config:
         oauth2:
           enabled: true
           grant_types: ["authorization_code", "client_credentials", "refresh_token"]
           scopes: ["read", "write"]
+          pkce:
+            enabled: true
+            method: "S256"
+          token_validation:
+            verify_exp: true
+            verify_iss: true
         token:
           enabled: true
           header: "Authorization"
+          management:
+            rotation_enabled: true
+            rotation_interval: 30
+            storage:
+              type: "encrypted"
+            encryption:
+              algorithm: "AES-256-GCM"
+      session_handling:
+        cookie_config:
+          secure: true
+          http_only: true
+          same_site: "Strict"
+        storage_config:
+          type: "encrypted"
+        security_config:
+          csrf_protection: true
+      error_handling:
+        sanitize_errors: true
+        log_level: "error"
+      tls_config:
+        enabled: true
+        min_version: "1.2"
+        verify_cert: true
+      rate_limiting:
+        enabled: true
+        max_requests: 100
+        window_size: 60
+        per_ip: true
+        burst_limit: 20
+        response:
+          status_code: 429
+          retry_after: true
     discovery:
       enabled: true
       method:

@@ -25,7 +25,7 @@ standard_error_codes:
 server_error_codes:
   description: "サーバー固有のエラーコード範囲"
   range:
-    minimum: -32099
+    minimum: -32599
     maximum: -32000
   examples:
     server_error:

@@ -68,6 +68,31 @@ base_metrics:
         non_critical: 0.005
       unit: "percent"
 
+  sampling:
+    throughput:
+      type: "rate"
+      description: "サンプリングスループット"
+      threshold:
+        critical: 10  # req/s
+        warning: 20
+      unit: "requests_per_second"
+
+    latency:
+      type: "histogram"
+      description: "サンプリングレイテンシー"
+      threshold:
+        critical: 2000  # ms
+        warning: 1000
+      unit: "milliseconds"
+
+    fallback_rate:
+      type: "rate"
+      description: "代替機能使用率"
+      threshold:
+        critical: 0.3  # 30%
+        warning: 0.2
+      unit: "percent"
+
   resource:
     connection_count:
       type: "gauge"

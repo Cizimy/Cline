@@ -1,13 +1,76 @@
 # AIエージェント指向の作業標準設計 - メタ情報定義
 
-version: "1.1.0"
+version: "1.2.0"
 
 # グローバル設定
 global:
   project_name: "Cline Custom Extensions"
   base_directory: "standards"
   default_language: "ja"
-  schema_version: "1.1.0"
+  schema_version: "1.2.0"
+  use_tls: true
+  security:
+    authentication:
+      auth_type: "oauth2"
+      token_expiration: 30  # 分
+      oauth2:
+        grant_types: ["authorization_code", "client_credentials", "refresh_token"]
+        token_endpoint: "https://auth.example.com/token"
+        auth_endpoint: "https://auth.example.com/authorize"
+        refresh_endpoint: "https://auth.example.com/refresh"
+        scopes: ["read", "write"]
+        pkce:
+          enabled: true
+          method: "S256"
+        token_validation:
+          verify_exp: true
+          verify_iss: true
+          verify_aud: true
+      state_management:
+        storage_type: "memory"
+        expiration: 30
+        cleanup_interval: 15
+      session_handling:
+        cookie_config:
+          secure: true
+          http_only: true
+          same_site: "Strict"
+        storage_config:
+          type: "encrypted"
+        security_config:
+          csrf_protection: true
+      error_handling:
+        sanitize_errors: true
+        log_level: "error"
+      remote_config:
+        service_discovery:
+          methods: ["dns", "http"]
+          dns:
+            secure_lookup: true
+          http:
+            use_https: true
+            verify_ssl: true
+        stateless:
+          auth_per_request: true
+          session_handling:
+            store_state: false
+        timeouts:
+          connect: 10
+        retry:
+          max_attempts: 3
+    tls_config:
+      enabled: true
+      required: true
+      min_version: "1.2"
+      verify_cert: true
+      cipher_suites:
+        - "TLS_AES_128_GCM_SHA256"
+        - "TLS_AES_256_GCM_SHA384"
+        - "TLS_CHACHA20_POLY1305_SHA256"
+      cert_validation:
+        verify_hostname: true
+        verify_expiry: true
+        verify_revocation: true
 
 # コンテキスト定義
 contexts:
@@ -118,12 +181,37 @@ monitoring:
     - "process_duration"
     - "error_count"
     - "success_rate"
+    - "request_rate"
+    - "response_time"
   alerts:
     error_threshold: 5
     duration_threshold: 3600
+  rate_limiting:
+    enabled: true
+    max_requests: 100
+    window_size: 60  # 秒
+    per_ip: true
+    burst_limit: 20
+    response:
+      status_code: 429
+      retry_after: true
+    whitelist:
+      - "127.0.0.1"
+      - "::1"
+    blacklist_threshold: 10
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク標準v1.2.0への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "認証設定の強化（OAuth2、トークン管理）"
+      - "セキュリティ設定の追加（TLS、CSRF保護）"
+      - "レート制限の実装"
+      - "エラー管理の標準化"
+      - "サービスディスカバリーの設定追加"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "MCPサーバー対応と非同期処理の強化"

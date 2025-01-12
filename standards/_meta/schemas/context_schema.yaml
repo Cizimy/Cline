@@ -27,38 +27,115 @@ mcp_protocol:
       required_fields:
         - name: "type"
           type: "string"
-          enum: ["none", "oauth2", "token"]
+          enum: ["oauth2", "token"]
           description: "認証タイプ"
-        - name: "config"
+        - name: "token_expiration"
+          type: "number"
+          minimum: 5
+          maximum: 1440
+          description: "トークン有効期限（分）"
+        - name: "state_management"
           type: "object"
-          description: "認証設定"
-          optional: true
-          properties:
-            - name: "oauth2"
+          description: "状態管理設定"
+          required_fields:
+            - name: "storage_type"
+              type: "string"
+              enum: ["memory", "redis", "database"]
+              description: "状態管理ストレージタイプ"
+            - name: "expiration"
+              type: "number"
+              minimum: 1
+              maximum: 60
+              description: "状態管理有効期限（分）"
+            - name: "cleanup_interval"
+              type: "number"
+              minimum: 1
+              maximum: 60
+              description: "クリーンアップ間隔（分）"
+        - name: "session_handling"
+          type: "object"
+          description: "セッション管理設定"
+          required_fields:
+            - name: "cookie_config"
               type: "object"
-              description: "OAuth2設定"
+              description: "Cookie設定"
               required_fields:
-                - name: "client_id"
+                - name: "secure"
+                  type: "boolean"
+                  default: true
+                  description: "セキュアCookie"
+                - name: "http_only"
+                  type: "boolean"
+                  default: true
+                  description: "HttpOnly設定"
+                - name: "same_site"
                   type: "string"
-                  description: "クライアントID"
-                - name: "client_secret"
+                  enum: ["Strict", "Lax"]
+                  default: "Strict"
+                  description: "SameSite設定"
+            - name: "storage_config"
+              type: "object"
+              description: "ストレージ設定"
+              required_fields:
+                - name: "type"
                   type: "string"
-                  description: "クライアントシークレット"
-                - name: "auth_url"
-                  type: "string"
-                  description: "認証URL"
-                - name: "token_url"
-                  type: "string"
-                  description: "トークンURL"
-                - name: "scope"
-                  type: "string"
-                  description: "スコープ"
-                - name: "redirect_uri"
-                  type: "string"
-                  description: "リダイレクトURI"
-                - name: "response_type"
-                  type: "string"
-                  description: "レスポンスタイプ"
+                  enum: ["encrypted"]
+                  description: "ストレージタイプ"
+            - name: "security_config"
+              type: "object"
+              description: "セキュリティ設定"
+              required_fields:
+                - name: "csrf_protection"
+                  type: "boolean"
+                  default: true
+                  description: "CSRF保護"
+        - name: "error_handling"
+          type: "object"
+          description: "エラー処理設定"
+          required_fields:
+            - name: "sanitize_errors"
+              type: "boolean"
+              default: true
+              description: "エラーメッセージのサニタイズ"
+            - name: "log_level"
+              type: "string"
+              enum: ["error", "warn", "info"]
+              default: "error"
+              description: "ログレベル"
+        - name: "remote_config"
+          type: "object"
+          description: "リモート設定"
+          required_fields:
+            - name: "service_discovery"
+              type: "object"
+              description: "サービスディスカバリー設定"
+              required_fields:
+                - name: "methods"
+                  type: "array"
+                  items:
+                    type: "string"
+                    enum: ["dns", "http", "manual"]
+                  description: "ディスカバリー方式"
+                - name: "dns"
+                  type: "object"
+                  description: "DNS設定"
+                  required_fields:
+                    - name: "secure_lookup"
+                      type: "boolean"
+                      default: true
+                      description: "セキュアDNSルックアップ"
+                - name: "http"
+                  type: "object"
+                  description: "HTTP設定"
+                  required_fields:
+                    - name: "use_https"
+                      type: "boolean"
+                      default: true
+                      description: "HTTPS使用"
+                    - name: "verify_ssl"
+                      type: "boolean"
+                      default: true
+                      description: "SSL検証"
     - name: "discovery"
       type: "object"
       description: "サービスディスカバリー設定"

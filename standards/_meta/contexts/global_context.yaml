@@ -72,6 +72,21 @@ global_settings:
   
   security:
     strict_mode: true
+    use_tls: true
+    tls_config:
+      enabled: true
+      required: true
+      min_version: "1.2"
+      verify_cert: true
+      cipher_suites:
+        - "TLS_AES_128_GCM_SHA256"
+        - "TLS_AES_256_GCM_SHA384"
+        - "TLS_CHACHA20_POLY1305_SHA256"
+      cert_validation:
+        verify_hostname: true
+        verify_expiry: true
+        verify_revocation: true
+
     allowed_operations:
       - "file_read"
       - "file_write"
@@ -80,6 +95,102 @@ global_settings:
     restricted_paths:
       - "config/sensitive/"
       - "credentials/"
+
+    authentication:
+      auth_type: "oauth2"
+      token_expiration: 30  # 分
+      state_management:
+        storage_type: "memory"
+        expiration: 30
+        cleanup_interval: 15
+      session_handling:
+        cookie_config:
+          secure: true
+          http_only: true
+          same_site: "Strict"
+        storage_config:
+          type: "encrypted"
+          encryption:
+            algorithm: "AES-256-GCM"
+            key_rotation: true
+            key_rotation_interval: 720
+        security_config:
+          csrf_protection: true
+          xss_protection: true
+          content_security_policy: "default-src 'self'"
+          frame_options: "DENY"
+          hsts:
+            enabled: true
+            max_age: 31536000
+            include_subdomains: true
+      error_handling:
+        sanitize_errors: true
+        log_level: "error"
+        mask_sensitive_data: true
+        error_codes:
+          parse_error: -32700
+          invalid_request: -32600
+          method_not_found: -32601
+          invalid_params: -32602
+          internal_error: -32603
+      remote_config:
+        service_discovery:
+          methods: ["https"]
+          dns:
+            secure_lookup: true
+            dnssec_validation: true
+          http:
+            use_https: true
+            verify_ssl: true
+            certificate_pinning:
+              enabled: true
+              pins:
+                - "sha256/..."
+        stateless:
+          auth_per_request: true
+          session_handling:
+            store_state: false
+        timeouts:
+          connect: 10
+          read: 30
+          write: 30
+        retry:
+          max_attempts: 3
+          backoff: "exponential"
+          initial_delay: 1000
+          max_delay: 10000
+
+    rate_limiting:
+      enabled: true
+      required: true
+      global:
+        max_requests: 100
+        window_size: 60
+        burst_limit: 20
+      per_ip:
+        enabled: true
+        max_requests: 50
+        window_size: 60
+        burst_limit: 10
+      per_token:
+        enabled: true
+        max_requests: 200
+        window_size: 60
+        burst_limit: 30
+      response:
+        status_code: 429
+        retry_after: true
+        headers:
+          - "X-RateLimit-Limit"
+          - "X-RateLimit-Remaining"
+          - "X-RateLimit-Reset"
+      whitelist:
+        - "127.0.0.1"
+        - "::1"
+      blacklist_threshold: 10
+      monitoring:
+        enabled: true
+        alert_threshold: 0.8
   
   resource_management:
     max_memory: 1024
