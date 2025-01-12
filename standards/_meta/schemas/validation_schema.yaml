@@ -37,7 +37,7 @@ validation_types:
       - name: "async_config"
         type: "object"
         description: "非同期検証の設定"
-        properties:
+        required_fields:
           - name: "queue_config"
             type: "object"
             description: "キュー設定の検証"

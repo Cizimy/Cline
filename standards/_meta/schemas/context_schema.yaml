@@ -321,7 +321,7 @@ error_handling_schema:
       properties:
         - name: "level"
           type: "string"
-          enum: ["critical", "error", "warning", "info"]
+          enum: ["critical", "high", "low"]
         - name: "response_time"
           type: "string"
           description: "対応必要時間"
