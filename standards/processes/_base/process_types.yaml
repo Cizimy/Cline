@@ -1,6 +1,90 @@
 ---
 # 基本プロセスタイプの定義
 process_types:
+  # Task Management Layer
+  task_planning:
+    description: "タスク分解と計画立案プロセス"
+    required_contexts:
+      - global
+      - task_context
+      - resource_availability
+    validation_rules:
+      - plan_feasibility_check
+      - resource_availability_check
+      - dependency_check
+    planning_components:
+      - goal_analysis
+      - step_breakdown
+      - tool_identification
+      - agent_collaboration_planning
+
+  task_execution:
+    description: "タスク実行管理プロセス"
+    required_contexts:
+      - global
+      - execution_context
+      - real_time_state
+    validation_rules:
+      - execution_safety_check
+      - progress_monitoring
+      - outcome_validation
+    execution_components:
+      - tool_invocation
+      - agent_coordination
+      - error_handling
+      - progress_tracking
+
+  # Intelligence Layer
+  llm_reasoning:
+    description: "LLMベースの意思決定プロセス"
+    required_contexts:
+      - global
+      - reasoning_context
+      - historical_data
+    validation_rules:
+      - reasoning_quality_check
+      - context_relevance_check
+      - output_validation
+    reasoning_components:
+      - input_understanding
+      - context_analysis
+      - plan_generation
+      - outcome_prediction
+
+  specialized_learning:
+    description: "特化型学習モデル連携プロセス"
+    required_contexts:
+      - global
+      - domain_context
+      - training_data
+    validation_rules:
+      - model_compatibility_check
+      - data_quality_check
+      - performance_validation
+    learning_components:
+      - domain_expertise_integration
+      - rag_implementation
+      - model_selection
+      - knowledge_integration
+
+  # History Management
+  conversation_history:
+    description: "対話履歴管理プロセス"
+    required_contexts:
+      - global
+      - conversation_context
+      - privacy_settings
+    validation_rules:
+      - privacy_compliance_check
+      - data_integrity_check
+      - retention_policy_check
+    history_components:
+      - interaction_logging
+      - context_preservation
+      - pattern_analysis
+      - learning_extraction
+
+  # System Base Processes
   setup:
     description: "環境構築・初期設定プロセス"
     required_contexts:
@@ -38,9 +122,72 @@ process_types:
       - security_check
       - deployment_check
 
+  # Multi-Agent Coordination
+  agent_communication:
+    description: "エージェント間通信プロセス"
+    required_contexts:
+      - global
+      - communication
+      - state_sync
+    validation_rules:
+      - message_validation
+      - state_sync_check
+      - security_check
+    communication_patterns:
+      - request_response
+      - publish_subscribe
+      - event_driven
+
+  role_management:
+    description: "エージェント役割管理プロセス"
+    required_contexts:
+      - global
+      - role_definition
+      - capability_mapping
+    validation_rules:
+      - role_validation
+      - capability_check
+      - conflict_check
+    role_attributes:
+      - primary_function
+      - required_capabilities
+      - collaboration_rules
+
+  state_synchronization:
+    description: "状態同期管理プロセス"
+    required_contexts:
+      - global
+      - state_management
+      - consistency
+    validation_rules:
+      - state_validation
+      - consistency_check
+      - conflict_resolution
+    sync_patterns:
+      - full_sync
+      - incremental_sync
+      - event_based_sync
+
 common_attributes:
-  version: "1.0.0"
-  last_updated: "2025-01-11"
+  version: "1.2.0"
+  last_updated: "2025-01-12"
   maintainer: "Cline AI"
   validation_framework: "standards/validations"
   documentation_template: "standards/templates/process"
+  agent_framework:
+    version: "1.0.0"
+    supports_multi_agent: true
+    communication_protocol: "MCP"
+    state_management: "distributed"
+    intelligence_layer:
+      llm_integration: true
+      slm_support: true
+      learning_capability: "adaptive"
+    task_management:
+      planning_capability: "hierarchical"
+      execution_monitoring: "real-time"
+      collaboration_mode: "dynamic"
+    history_management:
+      conversation_tracking: true
+      learning_from_history: true
+      privacy_aware: true
