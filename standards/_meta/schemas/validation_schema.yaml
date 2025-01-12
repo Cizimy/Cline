@@ -13,7 +13,7 @@ validation_types:
         description: "チェック項目のリスト"
       - name: "severity"
         type: "string"
-        enum: ["critical", "high", "low"]
+        enum: ["critical", "non-critical"]
         description: "MCPの標準定義に準拠した重要度"
       - name: "recovery_action"
         type: "string"
@@ -124,6 +124,33 @@ validation_types:
         type: "object"
         description: "エラー処理の検証"
         required_fields:
+          - name: "error_codes"
+            type: "object"
+            description: "エラーコード定義"
+            required_fields:
+              - name: "standard_codes"
+                type: "array"
+                description: "標準エラーコード"
+                enum:
+                  - -32700  # Parse error
+                  - -32600  # Invalid request
+                  - -32601  # Method not found
+                  - -32602  # Invalid params
+                  - -32603  # Internal error
+              - name: "server_codes"
+                type: "object"
+                description: "サーバー固有エラーコード"
+                properties:
+                  - name: "range"
+                    type: "object"
+                    description: "有効範囲"
+                    required_fields:
+                      - name: "minimum"
+                        type: "number"
+                        default: -32099
+                      - name: "maximum"
+                        type: "number"
+                        default: -32000
           - name: "severity_levels"
             type: "object"
             description: "重要度レベル検証"
@@ -132,14 +159,10 @@ validation_types:
                 type: "number"
                 description: "クリティカルエラーの対応時間（分）"
                 default: 15
-              - name: "high"
+              - name: "non-critical"
                 type: "number"
-                description: "重要エラーの対応時間（分）"
+                description: "非クリティカルエラーの対応時間（分）"
                 default: 60
-              - name: "low"
-                type: "number"
-                description: "軽微なエラーの対応時間（分）"
-                default: 1440
           - name: "recovery_strategies"
             type: "object"
             description: "リカバリー戦略検証"

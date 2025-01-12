@@ -20,9 +20,23 @@ standard_error_codes:
   internal_error:
     code: -32603
     description: "内部エラー"
-  server_error:
-    code: -32000
-    description: "サーバーエラー"
+
+# サーバー固有エラーコード範囲
+server_error_codes:
+  description: "サーバー固有のエラーコード範囲"
+  range:
+    minimum: -32099
+    maximum: -32000
+  examples:
+    server_error:
+      code: -32000
+      description: "一般的なサーバーエラー"
+    initialization_error:
+      code: -32001
+      description: "初期化エラー"
+    resource_error:
+      code: -32002
+      description: "リソースエラー"
 
 # エラータイプの定義
 error_types:
@@ -118,7 +132,7 @@ error_types:
         properties:
           - name: "transport_type"
             type: "string"
-            enum: ["stdio", "http_sse"]
+            enum: ["stdio", "http_sse", "remote"]
             description: "トランスポートタイプ"
           - name: "error_context"
             type: "object"
@@ -175,12 +189,12 @@ severity_levels:
   required_fields:
     - name: "level"
       type: "string"
-      enum: ["critical", "high", "low"]
+      enum: ["critical", "non-critical"]
       description: "MCPの標準定義に準拠した重要度"
     - name: "response_time"
       type: "number"
       description: "対応必要時間（分）"
-      enum: [15, 60, 1440]
+      enum: [15, 60]
     - name: "notification_method"
       type: "string"
       description: "通知方法"
@@ -192,7 +206,7 @@ severity_levels:
       description: "影響評価"
     - name: "recovery_priority"
       type: "string"
-      enum: ["immediate", "high", "medium", "low"]
+      enum: ["immediate", "standard"]
 
 # 回復手順の定義
 recovery_procedure:

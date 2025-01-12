@@ -141,7 +141,7 @@ process_types:
         required_fields:
           - name: "type"
             type: "string"
-            enum: ["stdio", "http_sse"]
+            enum: ["stdio", "http_sse", "remote"]
             description: "トランスポートタイプ"
           - name: "timeout"
             type: "number"
@@ -183,14 +183,10 @@ process_types:
                 type: "number"
                 description: "クリティカルエラーの対応時間（分）"
                 default: 15
-              - name: "high"
+              - name: "non-critical"
                 type: "number"
-                description: "重要エラーの対応時間（分）"
+                description: "非クリティカルエラーの対応時間（分）"
                 default: 60
-              - name: "low"
-                type: "number"
-                description: "軽微なエラーの対応時間（分）"
-                default: 1440
           - name: "recovery_strategies"
             type: "object"
             description: "リカバリー戦略"
@@ -291,7 +287,7 @@ ipc_schema:
   required_fields:
     - name: "transport_type"
       type: "string"
-      enum: ["stdio", "http_sse"]
+      enum: ["stdio", "http_sse", "remote"]
       description: "MCPトランスポート方式"
     - name: "jsonrpc_message"
       type: "object"
@@ -417,13 +413,17 @@ error_handling_schema:
     - name: "error_code"
       type: "number"
       description: "MCPプロトコル標準エラーコード"
-      enum:
-        - -32700  # Parse error
-        - -32600  # Invalid request
-        - -32601  # Method not found
-        - -32602  # Invalid params
-        - -32603  # Internal error
-        - -32000  # Server error
+      oneOf:
+        - enum:
+            - -32700  # Parse error
+            - -32600  # Invalid request
+            - -32601  # Method not found
+            - -32602  # Invalid params
+            - -32603  # Internal error
+        - type: "number"
+          minimum: -32099
+          maximum: -32000
+          description: "サーバー固有のエラーコード範囲"
     - name: "error_message"
       type: "string"
       description: "エラーメッセージ"

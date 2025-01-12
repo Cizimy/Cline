@@ -33,6 +33,32 @@ mcp_protocol:
           type: "object"
           description: "認証設定"
           optional: true
+          properties:
+            - name: "oauth2"
+              type: "object"
+              description: "OAuth2設定"
+              required_fields:
+                - name: "client_id"
+                  type: "string"
+                  description: "クライアントID"
+                - name: "client_secret"
+                  type: "string"
+                  description: "クライアントシークレット"
+                - name: "auth_url"
+                  type: "string"
+                  description: "認証URL"
+                - name: "token_url"
+                  type: "string"
+                  description: "トークンURL"
+                - name: "scope"
+                  type: "string"
+                  description: "スコープ"
+                - name: "redirect_uri"
+                  type: "string"
+                  description: "リダイレクトURI"
+                - name: "response_type"
+                  type: "string"
+                  description: "レスポンスタイプ"
     - name: "discovery"
       type: "object"
       description: "サービスディスカバリー設定"
@@ -155,14 +181,10 @@ context_types:
                 type: "number"
                 description: "クリティカルエラーの対応時間（分）"
                 default: 15
-              - name: "high"
+              - name: "non-critical"
                 type: "number"
-                description: "重要エラーの対応時間（分）"
+                description: "非クリティカルエラーの対応時間（分）"
                 default: 60
-              - name: "low"
-                type: "number"
-                description: "軽微なエラーの対応時間（分）"
-                default: 1440
           - name: "recovery_strategies"
             type: "object"
             description: "リカバリー戦略"
@@ -349,7 +371,7 @@ error_handling_schema:
       properties:
         - name: "level"
           type: "string"
-          enum: ["critical", "high", "low"]
+          enum: ["critical", "non-critical"]
         - name: "response_time"
           type: "string"
           description: "対応必要時間"
