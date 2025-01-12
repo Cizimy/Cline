@@ -1,7 +1,28 @@
 # エラー定義スキーマ
 
-version: "1.1.0"
+version: "1.2.0"
 type: "error_schema"
+
+# MCPプロトコル標準エラーコード
+standard_error_codes:
+  parse_error:
+    code: -32700
+    description: "JSONパースエラー"
+  invalid_request:
+    code: -32600
+    description: "不正なリクエスト"
+  method_not_found:
+    code: -32601
+    description: "メソッドが存在しない"
+  invalid_params:
+    code: -32602
+    description: "不正なパラメータ"
+  internal_error:
+    code: -32603
+    description: "内部エラー"
+  server_error:
+    code: -32000
+    description: "サーバーエラー"
 
 # エラータイプの定義
 error_types:
@@ -48,7 +69,7 @@ error_types:
         description: "詳細なエラー情報"
       - name: "process_type"
         type: "string"
-        enum: ["setup", "development", "deployment", "mcp_server", "async_process"]
+        enum: ["setup", "development", "deployment", "mcp_server_management", "async_process"]
         description: "プロセスタイプ"
       - name: "async_state"
         type: "object"
@@ -91,12 +112,42 @@ error_types:
       - name: "server_state"
         type: "object"
         description: "サーバーの状態情報"
-      - name: "api_context"
+      - name: "transport_error"
         type: "object"
-        description: "API関連のコンテキスト"
-      - name: "inter_server_communication"
+        description: "トランスポート層のエラー"
+        properties:
+          - name: "transport_type"
+            type: "string"
+            enum: ["stdio", "http_sse"]
+            description: "トランスポートタイプ"
+          - name: "error_context"
+            type: "object"
+            description: "エラーコンテキスト"
+      - name: "jsonrpc_message"
         type: "object"
-        description: "サーバー間通信の状態"
+        description: "JSON-RPCメッセージ"
+        properties:
+          - name: "jsonrpc"
+            type: "string"
+            enum: ["2.0"]
+            description: "JSON-RPCバージョン"
+          - name: "id"
+            type: "string"
+            description: "メッセージID"
+          - name: "error"
+            type: "object"
+            description: "エラー情報"
+            required_fields:
+              - name: "code"
+                type: "number"
+                description: "エラーコード"
+              - name: "message"
+                type: "string"
+                description: "エラーメッセージ"
+              - name: "data"
+                type: "object"
+                description: "追加のエラーデータ"
+                optional: true
 
   ipc:
     description: "プロセス間通信のエラー"
@@ -124,10 +175,12 @@ severity_levels:
   required_fields:
     - name: "level"
       type: "string"
-      enum: ["critical", "error", "warning", "info"]
+      enum: ["critical", "high", "low"]
+      description: "MCPの標準定義に準拠した重要度"
     - name: "response_time"
-      type: "string"
-      description: "対応必要時間"
+      type: "number"
+      description: "対応必要時間（分）"
+      enum: [15, 60, 1440]
     - name: "notification_method"
       type: "string"
       description: "通知方法"
@@ -145,24 +198,48 @@ severity_levels:
 recovery_procedure:
   type: "object"
   required_fields:
-    - name: "steps"
-      type: "array"
-      description: "回復手順のステップ"
+    - name: "strategies"
+      type: "object"
+      description: "リカバリー戦略"
+      required_fields:
+        - name: "auto_retry"
+          type: "object"
+          description: "自動リトライ設定"
+          properties:
+            - name: "max_attempts"
+              type: "number"
+              description: "最大リトライ回数"
+            - name: "interval"
+              type: "number"
+              description: "リトライ間隔（秒）"
+        - name: "fallback_action"
+          type: "object"
+          description: "フォールバックアクション設定"
+        - name: "manual_intervention"
+          type: "object"
+          description: "手動介入設定"
+    - name: "notification_rules"
+      type: "object"
+      description: "通知ルール"
+      required_fields:
+        - name: "error_threshold"
+          type: "object"
+          description: "エラー閾値設定"
+        - name: "escalation_path"
+          type: "array"
+          description: "エスカレーションパス"
+        - name: "alert_channels"
+          type: "array"
+          description: "アラートチャンネル"
     - name: "verification"
       type: "object"
       description: "回復後の検証方法"
     - name: "rollback_plan"
       type: "object"
       description: "ロールバック計画"
-    - name: "async_recovery"
-      type: "object"
-      description: "非同期回復手順"
-    - name: "ipc_recovery"
-      type: "object"
-      description: "通信回復手順"
-    - name: "checkpoint_recovery"
-      type: "object"
-      description: "チェックポイントからの回復"
+    - name: "cleanup_actions"
+      type: "array"
+      description: "クリーンアップ処理"
 
 # エラー報告の形式
 error_report:
@@ -269,6 +346,17 @@ metrics_schema:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク仕様への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "MCPプロトコル標準エラーコードの導入"
+      - "JSON-RPCメッセージフォーマットの定義追加"
+      - "エラー重要度レベルと対応時間の標準化"
+      - "リカバリー戦略の詳細化"
+      - "トランスポート層のエラー定義追加"
+      - "process_schema.yamlとvalidation_schema.yamlとの整合性確保"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "MCPサーバー対応と非同期処理の強化"
@@ -278,7 +366,6 @@ history:
       - "非同期処理のエラー定義強化"
       - "プロセス間通信のエラー定義追加"
       - "エラー重要度の拡張"
-      - "process_schema.yamlとvalidation_schema.yamlとの整合性確保"
   - version: "1.0.0"
     date: "2025-01-11"
     description: "初期バージョン"
