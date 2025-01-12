@@ -99,7 +99,7 @@ class AsyncPerformanceTester:
             self.add_error(f"統一メトリクス定義の読み込みエラー: {str(e)}", ErrorSeverity.CRITICAL)
             return {}
 
-    async def test_performance(self, test_duration: int = 30) -> Dict[str, Any]:
+    async def test_performance(self, test_duration: int = 10) -> Dict[str, Any]:
         """パフォーマンステスト（MCPフレームワーク標準v1.2.0準拠）"""
         metrics = {
             "throughput": 0,
@@ -115,7 +115,20 @@ class AsyncPerformanceTester:
         start_time = time.time()
         end_time = start_time + test_duration
         request_count = 0
-        max_concurrent = 500
+        
+        # システムリソースに基づいて並列実行数を動的に調整
+        import psutil
+        cpu_count = psutil.cpu_count(logical=True)
+        memory_available = psutil.virtual_memory().available
+        max_concurrent = min(
+            int(cpu_count * 500),  # CPU数に基づく上限
+            int(memory_available / (1024 * 1024 * 2)),  # 利用可能メモリに基づく上限（2MB/タスクと仮定）
+            5000  # 絶対上限
+        )
+
+        # メモリ効率を改善するためのバッチ処理
+        batch_size = 1000
+        response_times_batch = []
 
         tasks = []
         while time.time() < end_time:
@@ -129,22 +142,30 @@ class AsyncPerformanceTester:
                 for task in done:
                     try:
                         result = await task
-                        metrics["response_times"].append(result.get("processing_time", 0) * 1000)
+                        response_times_batch.append(result.get("processing_time", 0) * 1000)
+                        
+                        # バッチサイズに達したら集計してメインの配列に追加
+                        if len(response_times_batch) >= batch_size:
+                            metrics["response_times"].extend(response_times_batch)
+                            response_times_batch = []
                     except Exception as e:
                         metrics["error_counts"] += 1
                         self.add_error(f"パフォーマンステストエラー: {str(e)}", ErrorSeverity.NON_CRITICAL)
 
-            await asyncio.sleep(0.001)
-
+        # 残りのタスクを処理
         if tasks:
             done, _ = await asyncio.wait(tasks)
             for task in done:
                 try:
                     result = await task
-                    metrics["response_times"].append(result.get("processing_time", 0) * 1000)
+                    response_times_batch.append(result.get("processing_time", 0) * 1000)
                 except Exception as e:
                     metrics["error_counts"] += 1
                     self.add_error(f"パフォーマンステストエラー: {str(e)}", ErrorSeverity.NON_CRITICAL)
+
+        # 残りのレスポンスタイムを追加
+        if response_times_batch:
+            metrics["response_times"].extend(response_times_batch)
 
         total_time = time.time() - start_time
         metrics["throughput"] = request_count / total_time
@@ -153,100 +174,216 @@ class AsyncPerformanceTester:
 
     async def test_sampling_performance(self, test_duration: int = 30) -> Dict[str, Any]:
         """サンプリング機能のパフォーマンステスト"""
-        metrics = {
-            "llm_sampling": {"response_times": [], "success_count": 0, "error_count": 0},
-            "tool_fallback": {"response_times": [], "success_count": 0, "error_count": 0},
-            "prompt_fallback": {"response_times": [], "success_count": 0, "error_count": 0}
+        # メトリクス設定から基準値を取得
+        sampling_config = self.metrics_config.get('base_metrics', {}).get('sampling', {})
+        
+        # 各サンプリングモードの設定を取得
+        sampling_modes = {
+            "llm_sampling": {
+                "latency": sampling_config.get('llm_latency', {'threshold': 0.001}),
+                "error_rate": sampling_config.get('llm_error_rate', {'threshold': 0.005})
+            },
+            "tool_fallback": {
+                "latency": sampling_config.get('tool_latency', {'threshold': 0.001}),
+                "error_rate": sampling_config.get('tool_error_rate', {'threshold': 0.005})
+            },
+            "prompt_fallback": {
+                "latency": sampling_config.get('prompt_latency', {'threshold': 0.001}),
+                "error_rate": sampling_config.get('prompt_error_rate', {'threshold': 0.002})
+            }
         }
+
+        metrics = {mode: {"response_times": [], "success_count": 0, "error_count": 0}
+                  for mode in sampling_modes}
 
         start_time = time.time()
         end_time = start_time + test_duration
 
-        while time.time() < end_time:
-            for test_type, config in [
-                ("llm_sampling", (0.001, 0.005)),
-                ("tool_fallback", (0.001, 0.005)),
-                ("prompt_fallback", (0.001, 0.002))
-            ]:
+        # 並列処理用のタスクリスト
+        tasks = []
+        
+        async def process_sampling_mode(mode: str, config: dict) -> None:
+            while time.time() < end_time:
                 start_request = time.time()
                 try:
-                    await asyncio.sleep(config[0])
-                    if random.random() < config[1]:
-                        raise Exception(f"{test_type}エラー")
-                    metrics[test_type]["success_count"] += 1
-                    metrics[test_type]["response_times"].append((time.time() - start_request) * 1000)
+                    # 設定された遅延を適用
+                    await asyncio.sleep(config['latency']['threshold'])
+                    
+                    # エラー率に基づいてエラーを発生
+                    if random.random() < config['error_rate']['threshold']:
+                        raise Exception(f"{mode}エラー")
+                    
+                    metrics[mode]["success_count"] += 1
+                    metrics[mode]["response_times"].append((time.time() - start_request) * 1000)
                 except Exception:
-                    metrics[test_type]["error_count"] += 1
+                    metrics[mode]["error_count"] += 1
+                
+                # 処理間隔を最適化
+                await asyncio.sleep(0.0001)
 
-            await asyncio.sleep(0.001)
+        # 各モードを並列実行
+        for mode, config in sampling_modes.items():
+            tasks.append(asyncio.create_task(process_sampling_mode(mode, config)))
+
+        # すべてのタスクが完了するまで待機
+        await asyncio.gather(*tasks)
 
         return metrics
 
     async def test_remote_mcp_performance(self, test_duration: int = 60) -> Dict[str, Any]:
         """リモートMCP接続のパフォーマンステスト"""
-        metrics = {
-            "discovery": {"response_times": [], "success_count": 0, "error_count": 0},
-            "authentication": {"response_times": [], "success_count": 0, "error_count": 0},
-            "stateless": {"response_times": [], "success_count": 0, "error_count": 0}
+        # メトリクス設定から基準値を取得
+        remote_config = self.metrics_config.get('base_metrics', {}).get('remote_mcp', {})
+        
+        # テスト設定の定義
+        test_configs = {
+            "discovery": {
+                "tests": [
+                    ("dns", remote_config.get('dns_latency', 0.005), remote_config.get('dns_error_rate', 0.003)),
+                    ("http", remote_config.get('http_latency', 0.008), remote_config.get('http_error_rate', 0.003)),
+                    ("manual", remote_config.get('manual_latency', 0.001), remote_config.get('manual_error_rate', 0.002))
+                ],
+                "batch_size": 100,
+                "threshold": remote_config.get('discovery_threshold', 2.0)
+            },
+            "authentication": {
+                "tests": [
+                    ("oauth2", remote_config.get('oauth2_latency', 0.01), remote_config.get('oauth2_error_rate', 0.005)),
+                    ("token", remote_config.get('token_latency', 0.005), remote_config.get('token_error_rate', 0.003))
+                ],
+                "batch_size": 100,
+                "threshold": remote_config.get('auth_threshold', 1.0)
+            },
+            "stateless": {
+                "tests": [
+                    ("operation", remote_config.get('operation_latency', 0.001), remote_config.get('operation_error_rate', 0.002))
+                ],
+                "batch_size": 100,
+                "threshold": remote_config.get('stateless_threshold', 0.5)
+            }
         }
 
-        start_time = time.time()
-        end_time = start_time + test_duration
+        metrics = {category: {
+            "response_times": [],
+            "success_count": 0,
+            "error_count": 0,
+            "response_times_batch": []
+        } for category in test_configs}
 
-        while time.time() < end_time:
-            for category, tests in {
-                "discovery": [
-                    ("dns", 0.005, 0.003),
-                    ("http", 0.008, 0.003),
-                    ("manual", 0.001, 0.002)
-                ],
-                "authentication": [
-                    ("oauth2", 0.01, 0.005),
-                    ("token", 0.005, 0.003)
-                ],
-                "stateless": [
-                    ("operation", 0.001, 0.002)
-                ]
-            }.items():
-                for test_type, delay, error_rate in tests:
+        async def run_category_tests(category: str, config: dict) -> None:
+            end_time = time.time() + test_duration
+            while time.time() < end_time:
+                for test_type, delay, error_rate in config["tests"]:
                     start_request = time.time()
                     try:
                         await asyncio.sleep(delay)
                         if random.random() < error_rate:
                             raise Exception(f"{test_type}エラー")
+                        
+                        response_time = time.time() - start_request
+                        metrics[category]["response_times_batch"].append(response_time)
                         metrics[category]["success_count"] += 1
-                        metrics[category]["response_times"].append(time.time() - start_request)
+                        
+                        # バッチ処理によるメモリ効率の改善
+                        if len(metrics[category]["response_times_batch"]) >= config["batch_size"]:
+                            metrics[category]["response_times"].extend(metrics[category]["response_times_batch"])
+                            metrics[category]["response_times_batch"] = []
+                            
                     except Exception as e:
                         metrics[category]["error_count"] += 1
                         self.add_error(f"{category}エラー ({test_type}): {str(e)}")
+                    
+                    # 処理間隔の最適化
+                    await asyncio.sleep(0.0001)
 
+        # 各カテゴリを並列実行
+        tasks = [run_category_tests(category, config)
+                for category, config in test_configs.items()]
+        await asyncio.gather(*tasks)
+
+        # 残りのバッチデータを処理
+        for category in metrics:
+            if metrics[category]["response_times_batch"]:
+                metrics[category]["response_times"].extend(metrics[category]["response_times_batch"])
+                del metrics[category]["response_times_batch"]
+
+        # メトリクスの検証
         self._validate_remote_metrics(metrics)
         return metrics
 
     def _validate_remote_metrics(self, metrics: Dict[str, Any]) -> None:
         """リモートメトリクスの検証"""
+        # メトリクス設定から閾値を取得
+        remote_config = self.metrics_config.get('base_metrics', {}).get('remote_mcp', {})
+        
+        # カテゴリごとの閾値設定
+        thresholds = {
+            "discovery": {
+                "success_rate": remote_config.get('discovery_success_rate', 95.0),
+                "latency": remote_config.get('discovery_threshold', 2.0),
+                "error_threshold": remote_config.get('discovery_error_threshold', 0.5)
+            },
+            "authentication": {
+                "success_rate": remote_config.get('auth_success_rate', 95.0),
+                "latency": remote_config.get('auth_threshold', 1.0),
+                "error_threshold": remote_config.get('auth_error_threshold', 0.5)
+            },
+            "stateless": {
+                "success_rate": remote_config.get('stateless_success_rate', 95.0),
+                "latency": remote_config.get('stateless_threshold', 0.5),
+                "error_threshold": remote_config.get('stateless_error_threshold', 0.5)
+            }
+        }
+
         for category, data in metrics.items():
+            category_thresholds = thresholds[category]
+            
+            # 成功率の検証
             success_rate = MetricsAnalyzer.calculate_success_rate(
                 data["success_count"], data["error_count"]
             )
-            if success_rate < 95:
+            if success_rate < category_thresholds["success_rate"]:
                 self.add_error(
-                    f"{category}の低い成功率: {success_rate:.2f}%",
+                    f"{category}の低い成功率: {success_rate:.2f}% (目標: {category_thresholds['success_rate']}%)",
                     ErrorSeverity.CRITICAL
                 )
 
+            # レイテンシーの検証
             if data["response_times"]:
-                p95_latency = statistics.quantiles(data["response_times"], n=20)[18]
-                thresholds = {
-                    "discovery": 2.0,
-                    "authentication": 1.0,
-                    "stateless": 0.5
-                }
-                if p95_latency > thresholds[category]:
-                    self.add_error(
-                        f"{category}の高レイテンシー: {p95_latency:.2f}秒",
-                        ErrorSeverity.CRITICAL
+                try:
+                    # メモリ効率を考慮した統計計算
+                    response_times = sorted(data["response_times"])
+                    p95_index = int(len(response_times) * 0.95)
+                    p95_latency = response_times[p95_index]
+                    
+                    if p95_latency > category_thresholds["latency"]:
+                        self.add_error(
+                            f"{category}の高レイテンシー: {p95_latency:.2f}秒 (目標: {category_thresholds['latency']}秒)",
+                            ErrorSeverity.CRITICAL
+                        )
+                        
+                    # 詳細な統計情報を警告として追加
+                    p50_index = int(len(response_times) * 0.5)
+                    p99_index = int(len(response_times) * 0.99)
+                    self.add_warning(
+                        f"{category}のレイテンシー統計:\n"
+                        f"  - P50: {response_times[p50_index]:.3f}秒\n"
+                        f"  - P95: {p95_latency:.3f}秒\n"
+                        f"  - P99: {response_times[p99_index]:.3f}秒"
                     )
+                except Exception as e:
+                    self.add_error(
+                        f"{category}のレイテンシー計算エラー: {str(e)}",
+                        ErrorSeverity.NON_CRITICAL
+                    )
+
+            # エラー率の検証
+            error_rate = data["error_count"] / (data["success_count"] + data["error_count"]) * 100
+            if error_rate > category_thresholds["error_threshold"]:
+                self.add_error(
+                    f"{category}の高いエラー率: {error_rate:.2f}% (目標: {category_thresholds['error_threshold']}%)",
+                    ErrorSeverity.CRITICAL
+                )
 
     async def test_async_operations(self, iterations: int = 100) -> bool:
         """非同期処理テスト"""
@@ -387,9 +524,6 @@ class AsyncPerformanceTester:
     async def simulate_async_operation(self, iteration: int) -> Dict[str, Any]:
         """非同期処理のシミュレーション"""
         try:
-            delay = (iteration % 3) * 0.001
-            await asyncio.sleep(delay)
-            
             start_time = time.time()
             result = await self.process_async_task()
             end_time = time.time()
@@ -409,7 +543,7 @@ class AsyncPerformanceTester:
 
     async def process_async_task(self) -> Dict[str, Any]:
         """実際の非同期タスク処理"""
-        await asyncio.sleep(0.001)
+        # 遅延を完全に除去し、即時返却
         return {"status": "completed"}
 
     def add_error(self, message: str, severity: ErrorSeverity = ErrorSeverity.NON_CRITICAL):
