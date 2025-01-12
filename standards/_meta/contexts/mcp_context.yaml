@@ -1,7 +1,68 @@
 # MCPサーバーコンテキスト定義
 
-version: "1.1.0"
+version: "1.2.0"
 type: "mcp_context"
+
+# MCPプロトコル標準定義
+protocol_standard:
+  transport:
+    type:
+      enum: ["stdio", "http_sse"]
+      description: "標準トランスポート層タイプ"
+    timeout: 30
+    retry:
+      max_attempts: 3
+      backoff: "exponential"
+
+  message_format:
+    jsonrpc: "2.0"
+    error_codes:
+      parse_error: -32700
+      invalid_request: -32600
+      method_not_found: -32601
+      invalid_params: -32602
+      internal_error: -32603
+      server_error_start: -32000
+
+# サーバー基本設定
+server_config:
+  command:
+    type: "string"
+    required: true
+    description: "サーバー実行コマンド"
+  
+  args:
+    type: "array"
+    required: true
+    description: "コマンド引数"
+  
+  disabled:
+    type: "boolean"
+    default: false
+    description: "無効化フラグ"
+  
+  alwaysAllow:
+    type: "array"
+    default: []
+    description: "常に許可する操作"
+
+# サーバー機能定義
+capabilities:
+  resources:
+    enabled: false
+    description: "データとコンテンツの提供機能"
+  
+  tools:
+    enabled: false
+    description: "実行可能な機能の提供"
+  
+  prompts:
+    enabled: false
+    description: "再利用可能なプロンプトテンプレート"
+  
+  sampling:
+    enabled: false
+    description: "LLMからの補完要求機能"
 
 # サーバー定義
 server_definition:
@@ -260,97 +321,87 @@ operation_patterns:
       - after: "認証情報設定"
         check: "auth_validation"
 
-# エラーパターンと重要度
-error_patterns:
-  # 重要度の定義
+# エラー管理定義
+error_management:
+  # 標準エラーコード範囲（MCPフレームワーク準拠）
+  error_codes:
+    parse_error: -32700
+    invalid_request: -32600
+    method_not_found: -32601
+    invalid_params: -32602
+    internal_error: -32603
+    server_error_range:
+      start: -32000
+      end: -32099
+
+  # 重要度レベル（MCPフレームワーク標準準拠）
   severity_levels:
     critical:
       response_time: 15  # 分単位
       description: "即時対応（15分以内）"
-      examples:
+      conditions:
         - "システム全体の機能停止"
         - "重大なセキュリティ違反"
         - "データ損失のリスク"
+      error_codes: [-32700, -32603]  # 最重要エラー
+
     high:
       response_time: 60  # 分単位
       description: "1時間以内の対応"
-      examples:
+      conditions:
         - "主要機能の部分的な停止"
         - "パフォーマンスの深刻な低下"
         - "データ整合性の問題"
+      error_codes: [-32602, -32601]  # 重要エラー
+
     low:
       response_time: 1440  # 分単位
       description: "24時間以内の対応"
-      examples:
+      conditions:
         - "軽微な機能の不具合"
         - "パフォーマンスの軽度な低下"
         - "非重要な警告"
+      error_codes: [-32600, -32000]  # 一般エラー
 
-  # 自動リカバリー条件の定義
-  auto_recovery_conditions:
-    retry_conditions:
-      max_retries:
-        critical: 2
-        high: 3
-        low: 5
-      retry_interval:
-        critical: 1  # 分単位
-        high: 5
-        low: 15
-      backoff_multiplier: 1.5
+  # リカバリー戦略
+  recovery_strategies:
+    automatic:
+      conditions:
+        - error_type: "connection_timeout"
+          max_retries: 3
+          retry_interval: 1000  # ミリ秒
+          backoff: "exponential"
+        - error_type: "rate_limit"
+          max_retries: 5
+          retry_interval: 5000
+          backoff: "linear"
+      
+      resource_thresholds:
+        cpu_usage: 80
+        memory_usage: 90
+        disk_space: 85
     
-    error_type_conditions:
-      recoverable:
-        - "connection_timeout"
-        - "rate_limit_exceeded"
-        - "temporary_service_unavailable"
-      non_recoverable:
-        - "authentication_failed"
-        - "invalid_configuration"
-        - "permission_denied"
-    
-    resource_state_conditions:
-      required_states:
-        - "system_responsive"
-        - "sufficient_memory"
-        - "network_available"
-      thresholds:
-        cpu_usage: 80  # パーセント
-        memory_usage: 90  # パーセント
-        disk_space: 85  # パーセント
+    manual:
+      conditions:
+        - error_type: "authentication_failed"
+          notification: ["system_admin"]
+          required_action: "token_refresh"
+        - error_type: "permission_denied"
+          notification: ["system_admin", "security_team"]
+          required_action: "permission_review"
 
-  # エラーパターンの定義
-  authentication:
-    symptoms:
-      - "401 Unauthorized"
-      - "Invalid token"
-    severity: "high"
-    escalation_policy:
-      level: 1
-      notify: ["system_admin"]
-      auto_retry: false
-    diagnosis:
-      - "環境変数の確認"
-      - "トークンの有効期限確認"
-    recovery:
-      - "トークンの再取得"
-      - "認証情報の更新"
-  
-  connection:
-    symptoms:
-      - "Connection refused"
-      - "Timeout"
-    severity: "critical"
-    escalation_policy:
-      level: 2
-      notify: ["system_admin", "network_admin"]
-      auto_retry: true
-    diagnosis:
-      - "サーバー状態の確認"
-      - "ネットワーク接続の確認"
-    recovery:
-      - "サーバーの再起動"
-      - "ネットワーク設定の修正"
+  # エラーレポート形式（MCPフレームワーク標準準拠）
+  error_reporting:
+    format:
+      code: "number"  # エラーコード
+      message: "string"  # エラーメッセージ
+      data:  # 追加情報（オプショナル）
+        type: "object"
+        properties:
+          timestamp: "string"
+          severity: "string"
+          context: "object"
+          stack_trace: "string"
 
 # モニタリング設定の参照
 monitoring_configuration:
@@ -369,6 +420,16 @@ learning_patterns:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "MCPフレームワーク仕様への完全準拠"
+    author: "Cline AI"
+    changes:
+      - "MCPプロトコル標準定義の追加（トランスポート層、JSON-RPCメッセージフォーマット）"
+      - "エラー管理の標準化（エラーコード範囲、重要度レベル、レポート形式）"
+      - "サーバー機能（capabilities）の明確化"
+      - "エラー重要度とエラーコードの関連付け"
+      - "リカバリー戦略の整理"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "MCPサーバー定義の強化、非同期処理管理の追加、IPCの強化、エラー重要度の追加、整合性の改善"
