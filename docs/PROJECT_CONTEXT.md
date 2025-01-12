@@ -257,12 +257,15 @@ Clineは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
    - extensions/configs/extensions.json: MCPサーバーの設定
    - extensions/core/environment-checker: 環境互換性チェッカー
    - standards/_meta/contexts/: コンテキスト定義ファイル
+   - docs/references/mcp_llm_reference.txt: MCPフレームワークのLLM向け詳細仕様
 
 2. 外部リソース
    - MCPサーバーのリポジトリ
      - Model Context Protocol Servers: https://github.com/modelcontextprotocol/servers
      - Awesome MCP Servers: https://github.com/punkpeye/awesome-mcp-servers
-   - 関連ドキュメント
+   - 重要な参照ドキュメント
+     - Model Context Protocol公式ドキュメント: https://modelcontextprotocol.io/introduction
+     - MCPフレームワーク仕様書: docs/references/mcp_llm_reference.txt
    - 開発ガイドライン
 
 このコンテキスト情報は、Clineがタスクを実行する際の基本的な理解と判断の基準として機能します。プロジェクトの発展に伴い、適宜更新されるべきです。

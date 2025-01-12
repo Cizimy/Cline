@@ -86,6 +86,15 @@ npm test -- --coverage
 
 このドキュメントは、特にClineがタスクを効率的に実行するために必要な基本情報を提供することを目的としています。
 
+### MCPフレームワーク参照
+
+プロジェクトはModel Context Protocol（MCP）フレームワークに基づいて実装されています：
+
+- 公式ドキュメント: https://modelcontextprotocol.io/introduction
+- LLM向け詳細仕様: docs/references/mcp_llm_reference.txt
+
+これらのドキュメントは、MCPの基本概念、実装ガイドライン、ベストプラクティスを提供し、プロジェクトの開発において重要な参照資料となります。
+
 ### コンテキスト定義
 
 `standards/_meta/contexts/`ディレクトリには、以下の重要なコンテキスト定義ファイルが含まれています：
