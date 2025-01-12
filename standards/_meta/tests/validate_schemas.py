@@ -216,6 +216,7 @@ class SchemaValidator:
         return valid
 
     def validate_schema_references(self, data: Dict[str, Any], file_path: str) -> bool:
+        """スキーマ参照の検証"""
         valid = True
         if 'references' in data:
             for ref in data['references']:
@@ -224,6 +225,135 @@ class SchemaValidator:
                     self.add_error(f"無効なスキーマ参照 in {os.path.basename(file_path)}: {ref}")
                     valid = False
         return valid
+
+    def validate_context_references(self, data: Dict[str, Any], file_path: str, visited: set = None) -> bool:
+        """コンテキスト間の相互参照を検証"""
+        if visited is None:
+            visited = set()
+
+        valid = True
+        current_file = os.path.basename(file_path)
+        visited.add(current_file)
+
+        if 'context_references' in data:
+            for ref in data['context_references']:
+                ref_file = f"{ref}.yaml"
+                ref_path = os.path.join(self.contexts_dir, ref_file)
+
+                # 参照先の存在確認
+                if not os.path.exists(ref_path):
+                    self.add_error(f"無効なコンテキスト参照 in {current_file}: {ref}")
+                    valid = False
+                    continue
+
+                # 循環参照の検出
+                if ref_file in visited:
+                    self.add_error(
+                        f"循環参照が検出されました: {' -> '.join(visited)} -> {ref_file}",
+                        "critical"
+                    )
+                    valid = False
+                    continue
+
+                # 参照先のコンテキストを読み込んで再帰的に検証
+                try:
+                    with open(ref_path, 'r', encoding='utf-8') as f:
+                        ref_data = yaml.safe_load(f)
+                        if not self.validate_context_references(ref_data, ref_path, visited.copy()):
+                            valid = False
+                except Exception as e:
+                    self.add_error(f"参照先コンテキストの読み込みエラー {ref_file}: {str(e)}")
+                    valid = False
+
+        return valid
+
+    def validate_context_dependencies(self, data: Dict[str, Any], file_path: str) -> bool:
+        """コンテキスト間の依存関係の整合性を検証"""
+        valid = True
+        current_file = os.path.basename(file_path)
+
+        if 'dependencies' in data:
+            deps = data['dependencies']
+            
+            # バージョン依存関係の検証
+            if 'required_versions' in deps:
+                for ctx, version in deps['required_versions'].items():
+                    ctx_path = os.path.join(self.contexts_dir, f"{ctx}.yaml")
+                    if not os.path.exists(ctx_path):
+                        self.add_error(f"依存コンテキストが見つかりません in {current_file}: {ctx}")
+                        valid = False
+                        continue
+
+                    try:
+                        with open(ctx_path, 'r', encoding='utf-8') as f:
+                            ctx_data = yaml.safe_load(f)
+                            ctx_version = ctx_data.get('version')
+                            if not ctx_version:
+                                self.add_error(f"依存コンテキストにバージョンが定義されていません: {ctx}")
+                                valid = False
+                            elif not self.validate_version_compatibility(version, ctx_version):
+                                self.add_error(
+                                    f"バージョン互換性エラー in {current_file}: "
+                                    f"{ctx} requires {version}, but found {ctx_version}"
+                                )
+                                valid = False
+                    except Exception as e:
+                        self.add_error(f"依存コンテキストの読み込みエラー {ctx}: {str(e)}")
+                        valid = False
+
+            # 機能依存関係の検証
+            if 'required_features' in deps:
+                for ctx, features in deps['required_features'].items():
+                    ctx_path = os.path.join(self.contexts_dir, f"{ctx}.yaml")
+                    if not os.path.exists(ctx_path):
+                        self.add_error(f"依存コンテキストが見つかりません in {current_file}: {ctx}")
+                        valid = False
+                        continue
+
+                    try:
+                        with open(ctx_path, 'r', encoding='utf-8') as f:
+                            ctx_data = yaml.safe_load(f)
+                            available_features = ctx_data.get('features', {})
+                            for feature in features:
+                                if feature not in available_features:
+                                    self.add_error(
+                                        f"必要な機能が見つかりません in {current_file}: "
+                                        f"{ctx} does not provide {feature}"
+                                    )
+                                    valid = False
+                    except Exception as e:
+                        self.add_error(f"依存コンテキストの読み込みエラー {ctx}: {str(e)}")
+                        valid = False
+
+        return valid
+
+    def validate_version_compatibility(self, required: str, actual: str) -> bool:
+        """バージョンの互換性を検証"""
+        import re
+        pattern = r'^(\d+)\.(\d+)\.(\d+)$'
+        
+        req_match = re.match(pattern, required)
+        act_match = re.match(pattern, actual)
+        
+        if not req_match or not act_match:
+            return False
+            
+        req_major, req_minor, req_patch = map(int, req_match.groups())
+        act_major, act_minor, act_patch = map(int, act_match.groups())
+        
+        # メジャーバージョンは完全一致が必要
+        if req_major != act_major:
+            return False
+            
+        # マイナーバージョンは同じかそれ以上である必要がある
+        if act_minor < req_minor:
+            return False
+            
+        # 同じマイナーバージョンの場合、パッチバージョンは同じかそれ以上である必要がある
+        if act_minor == req_minor and act_patch < req_patch:
+            return False
+            
+        return True
 
     def validate_metrics(self, data: Dict[str, Any], file_path: str) -> bool:
         if 'metrics' not in data:
@@ -336,6 +466,110 @@ class SchemaValidator:
 
         return valid
 
+    def validate_sampling(self, data: Dict[str, Any], file_path: str) -> bool:
+        """サンプリング機能の検証（MCPフレームワーク標準v1.2.0準拠）"""
+        if 'sampling' not in data:
+            return True
+
+        valid = True
+        sampling = data['sampling']
+        current_file = os.path.basename(file_path)
+
+        # 基本設定の検証
+        required_fields = ['enabled', 'mode', 'fallback']
+        for field in required_fields:
+            if field not in sampling:
+                self.add_error(f"サンプリング設定の必須フィールド欠落 in {current_file}: {field}")
+                valid = False
+
+        if not valid:
+            return False
+
+        # サンプリングモードの検証
+        valid_modes = ['llm', 'tool', 'prompt']
+        if sampling['mode'] not in valid_modes:
+            self.add_error(
+                f"無効なサンプリングモード in {current_file}: {sampling['mode']}",
+                "critical"
+            )
+            valid = False
+
+        # LLMサンプリング設定の検証
+        if sampling['mode'] == 'llm':
+            if 'llm_config' not in sampling:
+                self.add_error(f"LLM設定が欠落 in {current_file}")
+                valid = False
+            else:
+                llm_config = sampling['llm_config']
+                llm_required = ['model', 'temperature', 'max_tokens']
+                for field in llm_required:
+                    if field not in llm_config:
+                        self.add_error(f"LLM設定の必須フィールド欠落 in {current_file}: {field}")
+                        valid = False
+
+                # パラメータ範囲の検証
+                if 'temperature' in llm_config:
+                    temp = llm_config['temperature']
+                    if not isinstance(temp, (int, float)) or temp < 0 or temp > 2:
+                        self.add_error(f"無効なtemperature値 in {current_file}: {temp}")
+                        valid = False
+
+                if 'max_tokens' in llm_config:
+                    tokens = llm_config['max_tokens']
+                    if not isinstance(tokens, int) or tokens < 1:
+                        self.add_error(f"無効なmax_tokens値 in {current_file}: {tokens}")
+                        valid = False
+
+        # 代替機能の検証
+        if 'fallback' in sampling:
+            fallback = sampling['fallback']
+            if 'type' not in fallback:
+                self.add_error(f"代替機能のタイプが未定義 in {current_file}")
+                valid = False
+            else:
+                valid_types = ['tool', 'prompt']
+                if fallback['type'] not in valid_types:
+                    self.add_error(f"無効な代替機能タイプ in {current_file}: {fallback['type']}")
+                    valid = False
+
+                # ツールベースの代替機能の検証
+                if fallback['type'] == 'tool':
+                    if 'tool_config' not in fallback:
+                        self.add_error(f"ツール設定が欠落 in {current_file}")
+                        valid = False
+                    else:
+                        tool_config = fallback['tool_config']
+                        tool_required = ['name', 'parameters']
+                        for field in tool_required:
+                            if field not in tool_config:
+                                self.add_error(f"ツール設定の必須フィールド欠落 in {current_file}: {field}")
+                                valid = False
+
+                # プロンプトベースの代替機能の検証
+                elif fallback['type'] == 'prompt':
+                    if 'prompt_template' not in fallback:
+                        self.add_error(f"プロンプトテンプレートが欠落 in {current_file}")
+                        valid = False
+
+        return valid
+
+        # 必須フィールドの検証
+        required_fields = ['transport_type', 'jsonrpc_message', 'timeout', 'retry_policy']
+        for field in required_fields:
+            if field not in ipc.get('required_fields', []):
+                self.add_error(f"IPC定義の必須フィールド欠落 in {os.path.basename(file_path)}: {field}")
+                valid = False
+
+        # 通信タイプの検証
+        if 'communication_type' in ipc:
+            comm_type = ipc['communication_type'].get('enum', [])
+            expected_types = ['event', 'message', 'stream', 'shared_memory']
+            if not all(t in expected_types for t in comm_type):
+                self.add_error(f"無効な通信タイプ定義 in {os.path.basename(file_path)}")
+                valid = False
+
+        return valid
+
     def add_error(self, message: str, severity: str = "non-critical"):
         """エラーの追加（MCPフレームワーク標準v1.2.0準拠）"""
         if severity not in ["critical", "non-critical"]:
@@ -371,9 +605,85 @@ class SchemaValidator:
 
         return "\n".join(report)
 
+    def validate_directory_structure(self) -> bool:
+        """必須ディレクトリ構造の検証"""
+        valid = True
+        
+        # メタディレクトリの存在確認
+        if not os.path.exists(self.meta_dir):
+            self.add_error(f"メタディレクトリが見つかりません: {self.meta_dir}", "critical")
+            return False
+
+        # 必須ディレクトリの検証
+        for dir_name, dir_info in self.required_directories.items():
+            dir_path = os.path.join(self.meta_dir, dir_name)
+            
+            # ディレクトリの存在確認
+            if not os.path.exists(dir_path):
+                self.add_error(f"必須ディレクトリが見つかりません: {dir_name}", "critical")
+                valid = False
+                continue
+            
+            if not os.path.isdir(dir_path):
+                self.add_error(f"{dir_name}はディレクトリではありません", "critical")
+                valid = False
+                continue
+
+            # 必須ファイルの検証
+            for required_file in dir_info['required_files']:
+                file_path = os.path.join(dir_path, required_file)
+                if not os.path.exists(file_path):
+                    self.add_error(
+                        f"必須ファイルが見つかりません: {dir_name}/{required_file}",
+                        "critical"
+                    )
+                    valid = False
+                elif not os.path.isfile(file_path):
+                    self.add_error(
+                        f"{dir_name}/{required_file}はファイルではありません",
+                        "critical"
+                    )
+                    valid = False
+
+        return valid
+
+    def validate_file_naming(self, file_path: str) -> bool:
+        """ファイル命名規則の検証"""
+        import re
+        filename = os.path.basename(file_path)
+        
+        # ファイルタイプに基づく命名規則の検証
+        valid_rule_found = False
+        for pattern, description in self.file_naming_rules.items():
+            if re.match(pattern, filename):
+                valid_rule_found = True
+                break
+        
+        if not valid_rule_found:
+            self.add_error(
+                f"ファイル名が命名規則に違反しています: {filename}\n"
+                f"適用可能な規則:\n" + "\n".join([
+                    f"- {desc}: {pattern}"
+                    for pattern, desc in self.file_naming_rules.items()
+                ])
+            )
+            return False
+        
+        return True
+
     def validate_all(self) -> bool:
+        # ディレクトリ構造の検証
+        if not self.validate_directory_structure():
+            return False
+
         # スキーマファイルの検証
         schema_files = [f for f in os.listdir(self.schemas_dir) if f.endswith('.yaml')]
+        
+        # 各スキーマファイルの命名規則を検証
+        for schema_file in schema_files:
+            file_path = os.path.join(self.schemas_dir, schema_file)
+            if not self.validate_file_naming(file_path):
+                continue
         for schema_file in schema_files:
             file_path = os.path.join(self.schemas_dir, schema_file)
             
@@ -402,6 +712,14 @@ class SchemaValidator:
 
         # コンテキストファイルの検証
         context_files = [f for f in os.listdir(self.contexts_dir) if f.endswith('.yaml')]
+        
+        # 各コンテキストファイルの命名規則を検証
+        for context_file in context_files:
+            file_path = os.path.join(self.contexts_dir, context_file)
+            if not self.validate_file_naming(file_path):
+                continue
+
+        # 各コンテキストファイルの内容を検証
         for context_file in context_files:
             file_path = os.path.join(self.contexts_dir, context_file)
             
@@ -420,6 +738,10 @@ class SchemaValidator:
             self.validate_required_fields(data, ['version', 'type', 'required_fields'], file_path)
             self.validate_metrics(data, file_path)
             self.validate_error_severity(data, file_path)
+
+            # コンテキスト間の相互参照と依存関係の検証
+            self.validate_context_references(data, file_path)
+            self.validate_context_dependencies(data, file_path)
 
             # MCPプロトコル関連の検証
             if 'mcp_protocol' in data:

@@ -11,48 +11,30 @@
 ### 1. リポジトリ構造の変更
 
 ```
-standards/_meta/
-  ├── schemas/          # スキーマ定義の更新
-  │   ├── context_schema.yaml
-  │   ├── error_schema.yaml
-  │   ├── process_schema.yaml
-  │   └── validation_schema.yaml
-  └── tests/           # テスト環境の整備
-      ├── README.md
-      ├── run_tests.py
-      ├── validate_schemas.py
-      ├── test_async_performance.py
-      └── test_security.py
+standards/_meta/tests/
+  ├── validate_schemas.py  # テストスクリプトの機能拡充
+  └── README.md           # テストドキュメントの更新
 ```
 
 ### 2. 実装内容
 
 #### 完了した項目
 
-- [x] スキーマファイルの更新とMCPフレームワーク標準v1.2.0への準拠
-  - context_schema.yaml: コンテキスト定義の更新
-  - error_schema.yaml: エラー定義の標準化
-  - process_schema.yaml: プロセス定義の拡充
-  - validation_schema.yaml: 検証ルールの強化
+- [x] ファイル構造の検証機能の強化
+  - 必須ディレクトリ構造の完全な検証を実装
+  - ファイル命名規則の検証を追加
+  - ディレクトリ階層の検証機能を追加
 
-- [x] テスト環境の整備
-  - テストランナーの実装（run_tests.py）
-  - テストドキュメントの作成（README.md）
-  - 包括的なテストスイートの構築
+- [x] コンテキスト間の相互参照検証の実装
+  - コンテキスト参照の存在確認機能
+  - 循環参照の検出機能
+  - 依存関係の整合性チェック機能
 
-- [x] テストコードの整合性確認と修正
-  - validate_schemas.py
-    - 必須ディレクトリ構造の検証機能追加
-    - ファイル命名規則の検証実装
-    - ディレクトリ階層の検証機能追加
-  - test_async_performance.py
-    - メトリクス定義の統一（unified_metrics.yamlとの整合性確保）
-    - 状態遷移の完全な検証実装
-    - リカバリー処理後の遷移パターン追加
-  - test_security.py
-    - OAuth2とトークン認証の詳細検証強化
-    - エラーコード範囲の検証改善
-    - エラーコードの重複チェック実装
+- [x] サンプリング機能の検証実装（MCPフレームワーク標準v1.2.0準拠）
+  - サンプリング設定の詳細な検証
+  - LLM補完要求機能の検証
+  - 代替機能の要件検証
+  - パラメータ範囲の検証
 
 #### 保留・未完了の項目
 
@@ -67,8 +49,8 @@ standards/_meta/
 ### 1. 優先度高
 
 - [ ] 実装した検証機能の統合テストの実施
-- [ ] 新規追加した検証機能のドキュメント作成
 - [ ] テストカバレッジレポートの生成と分析
+- [ ] 新規追加した検証機能のドキュメント作成
 
 ### 2. 中期的な課題
 
@@ -92,10 +74,10 @@ standards/_meta/
   - テストファイル: `^test_[a-z][a-z0-9_]*\.py$`
   - ドキュメント: `^[A-Z][A-Z0-9_]*\.md$`
 
-- スキーマ更新時の注意点
-  - バージョン番号の厳密な管理
-  - 後方互換性の確保
-  - 変更履歴の記録
+- サンプリング設定の検証ルール
+  - LLMモード時の必須パラメータ確認
+  - 代替機能の設定検証
+  - パラメータ範囲の厳密な検証
 
 ### 2. 既知の問題
 
@@ -103,25 +85,26 @@ standards/_meta/
 
 ### 3. 監視が必要な項目
 
-- エラーコードの重複チェック結果
-- 状態遷移テストのカバレッジ
-- セキュリティテストの実行結果
-- スキーマバリデーションの実行結果
+- コンテキスト間の循環参照チェック結果
+- サンプリング設定の検証結果
+- テストカバレッジの推移
+- 検証エラーの発生パターン
 
 ## 参考情報
 
 ### 重要なファイル
 
+- `standards/_meta/tests/validate_schemas.py`
+  - 検証機能の主要実装
+  - 新規追加された検証メソッド
+    - validate_context_references()
+    - validate_context_dependencies()
+    - validate_sampling()
+    - validate_version_compatibility()
+
 - `standards/_meta/schemas/*.yaml`
   - MCPフレームワーク標準v1.2.0に準拠したスキーマ定義
   - 各スキーマの役割と依存関係を明確化
-
-- `standards/_meta/tests/`
-  - validate_schemas.py: ディレクトリ構造とファイル命名規則の検証
-  - test_async_performance.py: 状態遷移とメトリクス検証
-  - test_security.py: 認証検証とエラーコード管理
-  - run_tests.py: 統合テストランナー
-  - README.md: テスト環境のドキュメント
 
 ### 関連リンク
 
@@ -133,4 +116,4 @@ standards/_meta/
 
 - 今回の修正により、テストの網羅性と信頼性が大幅に向上
 - スキーマ定義とテストコードの整合性が確保され、より堅牢な開発環境を実現
-- 自動化されたテスト実行環境の基盤が整備された
+- MCPフレームワーク標準v1.2.0との完全な互換性を確保
