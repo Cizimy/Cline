@@ -1,6 +1,6 @@
 # 検証フレームワークスキーマ定義
 
-version: "1.1.0"
+version: "1.2.0"
 type: "validation_schema"
 
 # 検証タイプの定義
@@ -13,7 +13,8 @@ validation_types:
         description: "チェック項目のリスト"
       - name: "severity"
         type: "string"
-        enum: ["critical", "error", "warning", "info"]
+        enum: ["critical", "high", "low"]
+        description: "MCPの標準定義に準拠した重要度"
       - name: "recovery_action"
         type: "string"
         description: "失敗時の回復手順"
@@ -79,28 +80,92 @@ validation_types:
             type: "object"
             description: "通知設定"
 
-  mcp_server:
+  mcp_server_management:
     description: "MCPサーバー関連の検証"
     required_fields:
       - name: "server_type"
         type: "string"
         description: "サーバータイプ"
         enum: ["python", "node", "custom"]
+      - name: "base_config_validation"
+        type: "object"
+        description: "基本設定の検証"
+        required_fields:
+          - name: "command_validation"
+            type: "object"
+            description: "コマンド検証設定"
+          - name: "args_verification"
+            type: "object"
+            description: "引数検証設定"
+          - name: "permission_management"
+            type: "object"
+            description: "権限管理設定"
+      - name: "runtime_validation"
+        type: "object"
+        description: "実行時要件の検証"
+        required_fields:
+          - name: "version_compatibility"
+            type: "object"
+            description: "バージョン互換性検証"
+          - name: "resource_monitoring"
+            type: "object"
+            description: "リソース監視設定"
       - name: "auth_validation"
         type: "object"
         description: "認証情報の検証"
-      - name: "health_check"
+        required_fields:
+          - name: "token_management"
+            type: "object"
+            description: "トークン管理検証"
+          - name: "permission_control"
+            type: "object"
+            description: "権限制御検証"
+      - name: "error_handling"
         type: "object"
-        description: "サーバーの健全性チェック"
-      - name: "api_endpoints"
-        type: "array"
-        description: "APIエンドポイントの検証"
-      - name: "scaling_config"
-        type: "object"
-        description: "スケーリング設定の検証"
-      - name: "inter_server_deps"
-        type: "array"
-        description: "サーバー間の依存関係"
+        description: "エラー処理の検証"
+        required_fields:
+          - name: "severity_levels"
+            type: "object"
+            description: "重要度レベル検証"
+            required_fields:
+              - name: "critical"
+                type: "number"
+                description: "クリティカルエラーの対応時間（分）"
+                default: 15
+              - name: "high"
+                type: "number"
+                description: "重要エラーの対応時間（分）"
+                default: 60
+              - name: "low"
+                type: "number"
+                description: "軽微なエラーの対応時間（分）"
+                default: 1440
+          - name: "recovery_strategies"
+            type: "object"
+            description: "リカバリー戦略検証"
+            required_fields:
+              - name: "auto_retry"
+                type: "object"
+                description: "自動リトライ検証"
+              - name: "fallback_action"
+                type: "object"
+                description: "フォールバックアクション検証"
+              - name: "manual_intervention"
+                type: "object"
+                description: "手動介入検証"
+          - name: "notification_rules"
+            type: "object"
+            description: "通知ルール検証"
+            required_fields:
+              - name: "error_threshold"
+                type: "object"
+                description: "エラー閾値検証"
+              - name: "escalation_path"
+                type: "array"
+                description: "エスカレーションパス"
+              - name: "alert_channels"
+                type: "array"
+                description: "アラートチャンネル"
 
 # 検証結果の定義
 result_schema:
@@ -242,6 +307,17 @@ metrics_schema:
 
 # 更新履歴
 history:
+  - version: "1.2.0"
+    date: "2025-01-12"
+    description: "process_schema.yamlとの整合性強化"
+    changes:
+      - "MCPサーバー管理プロセスの名称を統一（mcp_server → mcp_server_management）"
+      - "サーバー設定の検証機能を強化（コマンド、引数、権限管理）"
+      - "ランタイム要件の監視機能を追加（バージョン互換性、リソース監視）"
+      - "認証とトークン管理の詳細化（トークン管理、権限制御）"
+      - "エラーハンドリングの体系化（重要度、リカバリー戦略、通知ルール）"
+      - "バージョンを1.2.0に更新してprocess_schema.yamlと統一"
+    author: "Cline AI"
   - version: "1.1.0"
     date: "2025-01-11"
     description: "process_schema.yamlとの整合性確保、MCPサーバー対応の強化"
