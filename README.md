@@ -121,16 +121,22 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    │   ├── base.json       # 基本設定テンプレート
    │   ├── development.json # 開発環境設定
    │   └── README.md       # 設定管理ドキュメント
-   └── custom-mcp/         # カスタムMCPサーバー
-       └── sqlite/         # SQLiteサーバー（Docker対応）
+   └── servers/            # 標準MCPサーバー
+       ├── postgres/       # PostgreSQLサーバー（読み取り専用）
+       ├── filesystem/     # ファイル操作サーバー
+       └── memory/        # 知識グラフメモリサーバー
    ```
 
-2. Docker対応
-   - SQLiteサーバーがDocker化に対応
-   - 他のサーバーも段階的にDocker化を予定
-   - 詳細な移行計画は `docs/MCP_MIGRATION_PLAN.md` を参照
+2. 実装状況
+   - [x] SQLiteサーバー: Docker化完了
+   - [x] PostgreSQLサーバー: 読み取り専用データベースアクセス
+   - [x] Filesystemサーバー: ファイル操作の基盤
+   - [x] Memoryサーバー: 知識グラフベースの永続メモリ
+   - [ ] その他のサーバー: 段階的に実装予定
 
 3. 運用ルール
+   - 標準MCPサーバーを優先的に使用
+   - サーバー実装前に必ずREADMEを確認
    - 設定変更時は必ずgenerate-config.ps1を実行
    - 環境変数は必ずenv.jsonで管理
    - パスの指定は環境変数を使用

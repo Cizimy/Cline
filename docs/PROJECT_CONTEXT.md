@@ -56,13 +56,38 @@ Noahは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 ### MCPサーバー管理（/MCP）
 
 - config/: 新しい設定管理システム
-  - env.json: 環境変数定義
+  - env.json: 環境変数定義（PostgreSQL, Filesystem, Memory等）
   - base.json: 基本設定テンプレート
   - development.json: 開発環境設定
   - README.md: 設定管理ドキュメント
-- custom-mcp/: カスタムMCPサーバー
-  - sqlite/: SQLiteサーバー（Docker対応）
 - servers/: 標準MCPサーバー（サブモジュール）
+  - postgres/: PostgreSQLサーバー（読み取り専用）
+  - filesystem/: ファイル操作サーバー
+  - memory/: 知識グラフメモリサーバー
+  - その他: 段階的に実装予定
+
+### サーバー実装方針
+
+1. 標準MCPサーバーの優先利用
+   - Model Context Protocol Serversの活用
+   - READMEベースの実装プロセス
+   - 最小限のカスタマイズ
+
+2. 実装プロセス
+   - サーバーREADMEの精読と機能確認
+   - 設定要件の特定と環境変数の準備
+   - 許可ツール（alwaysAllow）の明示的な設定
+   - generate-config.ps1による設定の反映
+
+3. 実装状況
+   - フェーズ1（基本インフラストラクチャ）
+     * PostgreSQL: 読み取り専用データベースアクセス
+     * Filesystem: NOAH_DATA_PATHに制限されたファイル操作
+     * Memory: 知識グラフベースの永続メモリシステム
+   - 今後のフェーズ
+     * 開発支援ツール（Git, GitHub等）
+     * 外部サービス連携（Google Drive, Slack等）
+     * 特殊機能（EverArt, Sequential Thinking等）
 
 ### コンテキスト定義（/standards/_meta/contexts）
 

@@ -10,9 +10,18 @@
 
 ### フェーズ1: 基本インフラストラクチャ（2週間）
 - [x] SQLite: 完了
-- [ ] PostgreSQL: データベース操作の基盤
-- [ ] Filesystem: ファイル操作の基盤
-- [ ] Memory: 知識グラフベースの永続メモリシステム
+- [x] PostgreSQL: データベース操作の基盤
+  - 標準MCPサーバー（@modelcontextprotocol/server-postgres）を使用
+  - 読み取り専用アクセスとスキーマ検査機能を提供
+  - queryツールを許可
+- [x] Filesystem: ファイル操作の基盤
+  - 標準MCPサーバー（@modelcontextprotocol/server-filesystem）を使用
+  - NOAH_DATA_PATHに制限されたファイル操作機能を提供
+  - 主要なファイル操作ツールを許可
+- [x] Memory: 知識グラフベースの永続メモリシステム
+  - 標準MCPサーバー（@modelcontextprotocol/server-memory）を使用
+  - エンティティ、リレーション、オブザベーションの管理
+  - 全ての知識グラフ操作ツールを許可
 
 ### フェーズ2: 開発支援ツール（2週間）
 - [ ] Git: リポジトリ操作
@@ -35,11 +44,25 @@
 ## 3. 移行手順の標準化
 
 ### 3.1 準備フェーズ
-1. サーバーコードの分析
-2. 依存関係の確認
+1. サーバー情報の確認
+   - Model Context Protocol Serversリポジトリの確認
+   - 標準MCPサーバーの有無確認
+   - 各サーバーのREADMEドキュメント精読
+
+2. サーバー選択の判断
+   - 標準MCPサーバーが利用可能な場合：
+     - READMEから機能と設定要件を確認
+     - 利用可能なツールとリソースの確認
+     - 必要な環境変数の特定
+   - カスタム実装が必要な場合：
+     - 要件分析とアーキテクチャ設計
+     - 依存関係の確認
+     - 設定ファイルの準備
+
 3. 設定ファイルの準備
    - env.jsonの環境変数追加
    - development.jsonの設定追加
+   - 各サーバーの許可ツール（alwaysAllow）の設定
 
 ### 3.2 Docker化
 1. Dockerfileの作成
@@ -122,3 +145,4 @@
 ### 8.2 関連ドキュメント
 - MCPフレームワーク仕様書: docs/references/mcp_llm_reference.txt
 - Docker公式ドキュメント: https://docs.docker.com/
+- Model Context Protocol Servers: https://github.com/modelcontextprotocol/servers

@@ -8,70 +8,59 @@
 
 ## 実装状況
 
-### 1. リポジトリ構造の変更
-
-```
-MCP/
-├── config/              # 新規追加: MCPサーバー設定管理
-│   ├── env.json        # 環境変数定義
-│   ├── base.json       # 基本設定テンプレート
-│   ├── development.json # 開発環境設定
-│   └── README.md       # 設定管理ドキュメント
-└── custom-mcp/
-    └── sqlite/
-        ├── Dockerfile  # 新規追加: Docker化準備
-        └── docker-build.ps1 # 新規追加: ビルドスクリプト
-```
-
-### 2. 実装内容
+### 1. フェーズ1: 基本インフラストラクチャの実装
 
 #### 完了した項目
 
-- [x] MCPサーバー設定管理システムの改善
-  - 環境変数ベースのパス解決システムの実装
-  - 階層的な設定ファイル構造の導入
-  - 設定生成スクリプトの作成
-- [x] SQLiteサーバーのDocker化
-  - Dockerfileの作成と設定
-  - ビルドスクリプトの実装
-  - イメージのビルドテスト完了
-- [x] 移行計画の策定
-  - 4フェーズの段階的移行計画の作成
-  - リスク管理と監視体制の確立
-  - スケジュールの策定
+- [x] PostgreSQL: データベース操作の基盤
+  - 標準MCPサーバー（@modelcontextprotocol/server-postgres）を使用
+  - 読み取り専用アクセスとスキーマ検査機能を設定
+  - queryツールを許可
+  - 環境変数の設定（POSTGRES_HOST, PORT, DB, USER, PASSWORD）
+
+- [x] Filesystem: ファイル操作の基盤
+  - 標準MCPサーバー（@modelcontextprotocol/server-filesystem）を使用
+  - NOAH_DATA_PATHに制限されたファイル操作機能を設定
+  - 主要なファイル操作ツール（read_file, write_file等）を許可
+  - アクセス権限の適切な設定
+
+- [x] Memory: 知識グラフベースの永続メモリシステム
+  - 標準MCPサーバー（@modelcontextprotocol/server-memory）を使用
+  - エンティティ、リレーション、オブザベーションの管理機能を設定
+  - 全ての知識グラフ操作ツールを許可
 
 #### 保留・未完了の項目
 
-- [ ] 他のMCPサーバーのDocker化
-  - 段階的な移行が必要
-  - 各サーバーの特性に応じた設定の調整
-- [ ] 本番環境用設定の作成
-  - production.jsonの作成が必要
-  - セキュリティ設定の強化
+- [ ] フェーズ2-4のMCPサーバー移行
+  - 開発支援ツール（Git, GitHub, GitLab, Puppeteer）
+  - 外部サービス連携（Google Drive, Maps, Slack, Sentry）
+  - 特殊機能（EverArt, Sequential Thinking, Time, Everything）
 
-### 3. 設定・認証情報の変更
+### 2. 設定・認証情報の変更
 
-- 環境変数の整理と標準化
-  - NOAH_HOME: Noahのホームディレクトリ
-  - NOAH_CONFIG_PATH: 設定ファイルのパス
-  - NOAH_DATA_PATH: データ保存ディレクトリ
-  - NOAH_PYTHON_PATH: Pythonインタプリタのパス
-  - NOAH_NODE_PATH: Node.jsのパス
+- 環境変数の追加（MCP/config/env.json）
+  - PostgreSQL関連の環境変数を追加
+  - 既存の環境変数は維持
+
+- MCPサーバー設定の更新（MCP/config/development.json）
+  - PostgreSQL, Filesystem, Memoryサーバーの設定を追加
+  - 各サーバーの許可ツールを明示的に設定
 
 ## 次のステップ
 
 ### 1. 優先度高
 
-- [ ] フェーズ1のMCPサーバー移行開始
-  - PostgreSQL
-  - Filesystem
-  - Memory
+- [ ] フェーズ2のMCPサーバー移行開始
+  - Git
+  - GitHub
+  - GitLab
+  - Puppeteer
 - [ ] 本番環境用設定ファイルの作成
 - [ ] 監視体制の確立
 
 ### 2. 中期的な課題
 
-- [ ] フェーズ2-4のMCPサーバー移行
+- [ ] フェーズ3-4のMCPサーバー移行
 - [ ] CI/CDパイプラインの整備
 - [ ] 監視・ロギング機能の実装
 
@@ -85,40 +74,40 @@ MCP/
 
 ### 1. 新規追加された運用ルール
 
+- 標準MCPサーバーを優先的に使用すること
+- サーバー実装前に必ずREADMEを確認すること
 - 設定変更時は必ずgenerate-config.ps1を実行すること
 - 環境変数は必ずenv.jsonで管理すること
-- パスの指定は環境変数を使用すること
 
 ### 2. 既知の問題
 
-- Docker環境が一部のサーバーでのみ対応
+- PostgreSQLサーバーは読み取り専用アクセスのみ
+- Filesystemサーバーは指定ディレクトリ内でのみ操作可能
 - 一部の設定パスが絶対パスのまま
-- 設定生成時のパーミッション問題の可能性
 
 ### 3. 監視が必要な項目
 
-- 設定ファイルの生成状況
+- 各サーバーの動作状況
 - 環境変数の解決結果
-- SQLiteサーバーの動作状況
+- アクセス権限の設定状態
+- メモリ使用状況
 
 ## 参考情報
 
 ### 重要なファイル
 
 - MCP/config/env.json: 環境変数定義
-- MCP/config/base.json: 基本設定テンプレート
 - MCP/config/development.json: 開発環境設定
-- MCP/config/generate-config.ps1: 設定生成スクリプト
-- MCP/custom-mcp/sqlite/Dockerfile: SQLiteサーバーのDocker設定
 - docs/MCP_MIGRATION_PLAN.md: 詳細な移行計画
+- MCP/servers/src/[server]/README.md: 各サーバーの詳細仕様
 
 ### 関連リンク
 
+- Model Context Protocol Servers: https://github.com/modelcontextprotocol/servers
 - MCPフレームワーク仕様書: docs/references/mcp_llm_reference.txt
-- Docker公式ドキュメント: https://docs.docker.com/
 
 ### 備考
 
-- 設定管理システムの改善により、より効率的なMCPサーバーの管理が可能に
-- Docker化は段階的に進めることを推奨
+- 標準MCPサーバーの活用により、カスタム実装を最小限に抑制
+- READMEベースの実装プロセスにより、設定の標準化を実現
 - 既存の機能は維持しながら、新しい管理方式への移行を計画的に実施
