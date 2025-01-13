@@ -11,6 +11,15 @@ cd Noah
 
 # 依存関係のインストール
 npm install
+
+# MCPサーバーのセットアップ
+cd MCP/servers
+# TypeScriptサーバーのビルド
+npm install
+npm run build
+# Pythonサーバーのセットアップ
+python -m venv .venv
+.venv/Scripts/pip install -e sqlite/ -e git/
 ```
 
 ## 更新管理
@@ -148,6 +157,40 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    - 実装言語に応じた適切な設定を使用
      * Python: PYTHONPATHとモジュール名の設定
      * TypeScript: NODE_PATHとdistディレクトリの設定
+
+4. MCPフレームワーク標準準拠（v1.2.0）
+   - エラー管理
+     * Critical（15分以内）: システム停止、セキュリティ違反、データ損失リスク
+     * Non-Critical（60分以内）: 一般的なエラー、パフォーマンス低下
+   - リモートMCPサポート
+     * 認証：OAuth2およびトークンベース認証
+     * サービスディスカバリー：DNS、HTTP、手動設定
+   - エージェントサポート
+     * 階層的なエージェントシステム（Coordinator/Worker/Specialist）
+     * インタラクティブなワークフロー
+   - サンプリング機能
+     * LLM補完要求
+     * 代替手段の提供
+
+5. トラブルシューティング
+   - モジュール未検出エラー
+     * PYTHONPATHの確認
+     * モジュールの再インストール
+   - 認証エラー
+     * 環境変数の確認
+     * キーファイルの配置確認
+   - 設定ファイルの検証
+     * 必須パラメータの確認
+     * パスの正確性の確認
+
+6. 利用可能なサーバー
+   - データベース操作: PostgreSQL, SQLite
+   - クラウドサービス連携: AWS, Google Drive
+   - 開発支援: Git, GitHub, GitLab
+   - ブラウザ自動化: Puppeteer
+   - ファイル操作: Filesystem
+   - メモリ管理: Memory
+   - その他: Time, Everything, Sequential Thinking
 
 ### Autonomous Agent機能
 
