@@ -261,6 +261,67 @@
       "env": {
         "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sentry/src"
       }
+    },
+    "everart": {
+      "command": "${NOAH_NODE_PATH}",
+      "args": [
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/everart/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "generate_image"
+      ],
+      "env": {
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/everart/dist",
+        "EVERART_API_KEY": "${EVERART_API_KEY}"
+      }
+    },
+    "sequential-thinking": {
+      "command": "${NOAH_NODE_PATH}",
+      "args": [
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sequentialthinking/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "sequential_thinking"
+      ],
+      "env": {
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sequentialthinking/dist"
+      }
+    },
+    "time": {
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mcp_server_time",
+        "--local-timezone=Asia/Tokyo"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "get_current_time",
+        "convert_time"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/time/src"
+      }
+    },
+    "everything": {
+      "command": "${NOAH_NODE_PATH}",
+      "args": [
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/everything/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "echo",
+        "add",
+        "longRunningOperation",
+        "sampleLLM",
+        "getTinyImage",
+        "printEnv"
+      ],
+      "env": {
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/everything/dist"
+      }
     }
   }
 }

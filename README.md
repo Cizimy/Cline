@@ -19,7 +19,7 @@ npm install
 npm run build
 # Pythonサーバーのセットアップ
 python -m venv .venv
-.venv/Scripts/pip install -e sqlite/ -e git/
+.venv/Scripts/pip install -e sqlite/ -e git/ -e time/
 ```
 
 ## 更新管理
@@ -133,7 +133,11 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
        ├── git/           # Gitリポジトリ操作（Python実装）
        ├── github/        # GitHub API連携（TypeScript実装）
        ├── gitlab/        # GitLab API連携（TypeScript実装）
-       └── puppeteer/     # ブラウザ自動化（TypeScript実装）
+       ├── puppeteer/     # ブラウザ自動化（TypeScript実装）
+       ├── everart/       # AI画像生成（TypeScript実装）
+       ├── sequential-thinking/ # 思考プロセス（TypeScript実装）
+       ├── time/          # 時間管理（Python実装）
+       └── everything/    # テスト/リファレンス（TypeScript実装）
    ```
 
 2. 実装状況
@@ -145,7 +149,10 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    - [x] GitHubサーバー: TypeScript実装によるGitHub API連携
    - [x] GitLabサーバー: TypeScript実装によるGitLab API連携
    - [x] Puppeteerサーバー: TypeScript実装によるブラウザ自動化
-   - [ ] その他のサーバー: 段階的に実装予定
+   - [x] EverArtサーバー: TypeScript実装によるAI画像生成
+   - [x] Sequential Thinkingサーバー: TypeScript実装による思考プロセス管理
+   - [x] Timeサーバー: Python実装による時間管理
+   - [x] Everythingサーバー: TypeScript実装によるテスト/リファレンス
 
 3. 運用ルール
    - 標準MCPサーバーを優先的に使用
@@ -190,7 +197,10 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    - ブラウザ自動化: Puppeteer
    - ファイル操作: Filesystem
    - メモリ管理: Memory
-   - その他: Time, Everything, Sequential Thinking
+   - AI機能: EverArt
+   - 思考プロセス: Sequential Thinking
+   - 時間管理: Time
+   - テスト/リファレンス: Everything
 
 ### Autonomous Agent機能
 

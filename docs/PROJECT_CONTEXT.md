@@ -86,10 +86,21 @@ Noahは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
      * PostgreSQL: 読み取り専用データベースアクセス
      * Filesystem: NOAH_DATA_PATHに制限されたファイル操作
      * Memory: 知識グラフベースの永続メモリシステム
-   - 今後のフェーズ
-     * 開発支援ツール（Git, GitHub等）
-     * 外部サービス連携（Google Drive, Slack等）
-     * 特殊機能（EverArt, Sequential Thinking等）
+   - フェーズ2（開発支援ツール）
+     * Git: リポジトリ操作の基盤
+     * GitHub: GitHub API連携
+     * GitLab: GitLab API連携
+     * Puppeteer: ブラウザ自動化
+   - フェーズ3（外部サービス連携）
+     * Google Drive: ファイルアクセス
+     * Google Maps: 位置情報サービス
+     * Slack: チャネル管理
+     * Sentry: エラー追跡
+   - フェーズ4（特殊機能）
+     * EverArt: AI画像生成
+     * Sequential Thinking: 思考プロセス管理
+     * Time: 時間管理
+     * Everything: テスト/リファレンス
 
 ### コンテキスト定義（/standards/_meta/contexts）
 
@@ -240,9 +251,14 @@ Noahは安全かつ柔軟なパーソナルアシスタント的AIエージェ�
 3. サーバー構成
    - 19個の標準サーバーを提供
      - データベース操作（PostgreSQL, SQLite）
-     - クラウドサービス連携（AWS, Google Drive）
+     - クラウドサービス連携（Google Drive, Google Maps）
      - 開発支援（Git, GitHub, GitLab）
-     - ユーティリティ（Time, Memory, Filesystem）
+     - コミュニケーション（Slack）
+     - エラー管理（Sentry）
+     - AI機能（EverArt）
+     - 思考プロセス（Sequential Thinking）
+     - 時間管理（Time）
+     - ユーティリティ（Filesystem, Memory, Everything）
    - 各サーバーの独立性を維持
    - 必要に応じた選択的有効化
 
