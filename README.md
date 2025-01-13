@@ -11,11 +11,6 @@ cd Noah
 
 # 依存関係のインストール
 npm install
-
-# Docker環境のセットアップ（オプション）
-# Docker Desktopのインストールが必要です
-cd MCP/custom-mcp/sqlite
-.\docker-build.ps1
 ```
 
 ## 更新管理
@@ -116,7 +111,7 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
 1. 設定管理システム
    ```
    MCP/
-   ├── config/              # 新規追加: MCPサーバー設定管理
+   ├── config/              # MCPサーバー設定管理
    │   ├── env.json        # 環境変数定義
    │   ├── base.json       # 基本設定テンプレート
    │   ├── development.json # 開発環境設定
@@ -128,7 +123,7 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    ```
 
 2. 実装状況
-   - [x] SQLiteサーバー: Docker化完了
+   - [x] SQLiteサーバー: 標準MCPサーバーを使用
    - [x] PostgreSQLサーバー: 読み取り専用データベースアクセス
    - [x] Filesystemサーバー: ファイル操作の基盤
    - [x] Memoryサーバー: 知識グラフベースの永続メモリ
@@ -140,6 +135,7 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    - 設定変更時は必ずgenerate-config.ps1を実行
    - 環境変数は必ずenv.jsonで管理
    - パスの指定は環境変数を使用
+   - 環境変数は命名規則（[SERVER]_[CATEGORY]_[NAME]）に従う
 
 ### Autonomous Agent機能
 
@@ -185,7 +181,6 @@ Noah/
 │   └── archive/           # 引継ぎ文書アーカイブ
 ├── MCP/                  # MCPサーバー関連
 │   ├── config/           # 設定管理
-│   ├── custom-mcp/       # カスタムサーバー
 │   └── servers/          # 標準サーバー
 └── standards/            # 作業標準設計
     ├── _meta/            # メタ情報
@@ -198,7 +193,7 @@ Noah/
 
 - コア拡張機能：サブモジュールとして管理し、定期的に更新
 - 依存パッケージ：セマンティックバージョニングに従って更新
-- MCPサーバー：段階的なDocker化と設定の標準化
+- MCPサーバー：標準サーバーの活用と設定の標準化
 
 ## 貢献
 
