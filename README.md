@@ -117,16 +117,25 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    │   ├── development.json # 開発環境設定
    │   └── README.md       # 設定管理ドキュメント
    └── servers/            # 標準MCPサーバー
-       ├── postgres/       # PostgreSQLサーバー（読み取り専用）
-       ├── filesystem/     # ファイル操作サーバー
-       └── memory/        # 知識グラフメモリサーバー
+       ├── sqlite/         # SQLiteサーバー（Python実装）
+       ├── postgres/       # PostgreSQLサーバー（TypeScript実装）
+       ├── filesystem/     # ファイル操作サーバー（TypeScript実装）
+       ├── memory/         # 知識グラフメモリサーバー（TypeScript実装）
+       ├── git/           # Gitリポジトリ操作（Python実装）
+       ├── github/        # GitHub API連携（TypeScript実装）
+       ├── gitlab/        # GitLab API連携（TypeScript実装）
+       └── puppeteer/     # ブラウザ自動化（TypeScript実装）
    ```
 
 2. 実装状況
-   - [x] SQLiteサーバー: 標準MCPサーバーを使用
-   - [x] PostgreSQLサーバー: 読み取り専用データベースアクセス
-   - [x] Filesystemサーバー: ファイル操作の基盤
-   - [x] Memoryサーバー: 知識グラフベースの永続メモリ
+   - [x] SQLiteサーバー: Python実装による標準MCPサーバー
+   - [x] PostgreSQLサーバー: TypeScript実装による読み取り専用アクセス
+   - [x] Filesystemサーバー: TypeScript実装によるファイル操作基盤
+   - [x] Memoryサーバー: TypeScript実装による知識グラフ管理
+   - [x] Gitサーバー: Python実装によるリポジトリ操作
+   - [x] GitHubサーバー: TypeScript実装によるGitHub API連携
+   - [x] GitLabサーバー: TypeScript実装によるGitLab API連携
+   - [x] Puppeteerサーバー: TypeScript実装によるブラウザ自動化
    - [ ] その他のサーバー: 段階的に実装予定
 
 3. 運用ルール
@@ -136,6 +145,9 @@ MCPサーバーは新しい設定管理システムを導入し、より効率�
    - 環境変数は必ずenv.jsonで管理
    - パスの指定は環境変数を使用
    - 環境変数は命名規則（[SERVER]_[CATEGORY]_[NAME]）に従う
+   - 実装言語に応じた適切な設定を使用
+     * Python: PYTHONPATHとモジュール名の設定
+     * TypeScript: NODE_PATHとdistディレクトリの設定
 
 ### Autonomous Agent機能
 

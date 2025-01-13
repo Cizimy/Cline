@@ -8,37 +8,41 @@
 
 ## 2. 移行対象サーバー
 
-### フェーズ1: 基本インフラストラクチャ（2週間）
+### フェーズ1: 基本インフラストラクチャ（完了）
 - [x] SQLite: データベース操作の基盤
-  - 標準MCPサーバー（@modelcontextprotocol/server-sqlite）を使用
+  - 標準MCPサーバー（Python実装）を使用
   - 基本的なデータベース操作機能を提供
   - 主要なクエリツールを許可
 - [x] PostgreSQL: データベース操作の基盤
-  - 標準MCPサーバー（@modelcontextprotocol/server-postgres）を使用
+  - 標準MCPサーバー（TypeScript実装）を使用
   - 読み取り専用アクセスとスキーマ検査機能を提供
   - queryツールを許可
 - [x] Filesystem: ファイル操作の基盤
-  - 標準MCPサーバー（@modelcontextprotocol/server-filesystem）を使用
+  - 標準MCPサーバー（TypeScript実装）を使用
   - NOAH_DATA_PATHに制限されたファイル操作機能を提供
   - 主要なファイル操作ツールを許可
 - [x] Memory: 知識グラフベースの永続メモリシステム
-  - 標準MCPサーバー（@modelcontextprotocol/server-memory）を使用
+  - 標準MCPサーバー（TypeScript実装）を使用
   - エンティティ、リレーション、オブザベーションの管理
   - 全ての知識グラフ操作ツールを許可
 
-### フェーズ2: 開発支援ツール（2週間）
-- [ ] Git: リポジトリ操作
-  - 標準MCPサーバー（@modelcontextprotocol/server-git）を使用予定
+### フェーズ2: 開発支援ツール（実装中）
+- [x] Git: リポジトリ操作
+  - 標準MCPサーバー（Python実装）を使用
   - 基本的なGit操作機能を提供
-- [ ] GitHub: GitHub API連携
-  - 標準MCPサーバー（@modelcontextprotocol/server-github）を使用予定
+  - リポジトリ操作ツールを許可
+- [x] GitHub: GitHub API連携
+  - 標準MCPサーバー（TypeScript実装）を使用
   - GitHub APIを介した操作機能を提供
-- [ ] GitLab: GitLab API連携
-  - 標準MCPサーバー（@modelcontextprotocol/server-gitlab）を使用予定
+  - リポジトリ管理ツールを許可
+- [x] GitLab: GitLab API連携
+  - 標準MCPサーバー（TypeScript実装）を使用
   - GitLab APIを介した操作機能を提供
-- [ ] Puppeteer: ブラウザ自動化
-  - 標準MCPサーバー（@modelcontextprotocol/server-puppeteer）を使用予定
+  - リポジトリ管理ツールを許可
+- [x] Puppeteer: ブラウザ自動化
+  - 標準MCPサーバー（TypeScript実装）を使用
   - ブラウザ自動化機能を提供
+  - 画面操作ツールを許可
 
 ### フェーズ3: 外部サービス連携（2週間）
 - [ ] Google Drive: ファイルアクセス
@@ -73,7 +77,7 @@
 ### 3.1 準備フェーズ
 1. サーバー情報の確認
    - Model Context Protocol Serversリポジトリの確認
-   - 標準MCPサーバーの有無確認
+   - 実装言語の確認（Python/TypeScript）
    - 各サーバーのREADMEドキュメント精読
 
 2. サーバー選択と設定
@@ -110,10 +114,15 @@
    - 環境別の設定ファイル分離
    - 設定の継承関係の明確化
 
-2. 設定の自動生成
-   - generate-config.ps1の機能拡張
-   - 環境変数の自動解決
-   - 設定の整合性チェック
+2. 実装言語別の設定
+   - Python実装
+     * PYTHONPATHの設定（src/ディレクトリ）
+     * モジュール名に.__main__を追加
+     * 仮想環境の使用
+   - TypeScript実装
+     * NODE_PATHの設定（dist/ディレクトリ）
+     * ビルド後のJSファイルを使用
+     * 依存関係の管理
 
 3. 設定の検証
    - 必須項目の存在確認
@@ -132,12 +141,14 @@
 - パス解決の問題
 - 権限設定の不整合
 - データの整合性
+- 実装言語の違いによる問題
 
 ### 4.2 対策
 - 段階的な移行による影響範囲の制限
 - バックアップと復元手順の整備
 - ロールバック手順の準備
 - 監視体制の強化
+- 実装言語別のテスト強化
 
 ## 5. スケジュール
 
@@ -147,8 +158,8 @@
 - バッファ: 1週間
 
 ### 5.2 マイルストーン
-1. フェーズ1完了: 基本インフラの移行
-2. フェーズ2完了: 開発ツールの移行
+1. フェーズ1完了: 基本インフラの移行（完了）
+2. フェーズ2完了: 開発ツールの移行（完了）
 3. フェーズ3完了: 外部サービスの移行
 4. フェーズ4完了: 特殊機能の移行
 
@@ -173,11 +184,13 @@
 - 設定変更時は必ずgenerate-config.ps1を実行
 - 環境変数は必ずenv.jsonで管理
 - パスの指定は環境変数を使用
+- 実装言語に応じた適切な設定を使用
 
 ### 7.2 移行後の確認事項
 - 設定ファイルの生成状況
 - 環境変数の解決結果
 - サーバーの動作状況
+- 実装言語別の動作確認
 
 ## 8. 参考情報
 

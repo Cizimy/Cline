@@ -4,7 +4,7 @@
       "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
       "args": [
         "-m",
-        "mcp_server_sqlite",
+        "mcp_server_sqlite.__main__",
         "--db-path",
         "${SQLITE_DB_PATH}"
       ],
@@ -18,29 +18,29 @@
         "append_insight"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sqlite"
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sqlite/src"
       }
     },
     "postgres": {
-      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "command": "${NOAH_NODE_PATH}",
       "args": [
-        "-m",
-        "mcp_server_postgres",
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/postgres/dist/index.js",
         "postgresql://${POSTGRES_DB_USER}:${POSTGRES_DB_PASSWORD}@${POSTGRES_DB_HOST}:${POSTGRES_DB_PORT}/${POSTGRES_DB_NAME}"
       ],
       "disabled": false,
       "alwaysAllow": [
-        "query"
+        "query",
+        "list_tables",
+        "describe_table"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/postgres"
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/postgres/dist"
       }
     },
     "filesystem": {
-      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "command": "${NOAH_NODE_PATH}",
       "args": [
-        "-m",
-        "mcp_server_filesystem",
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/filesystem/dist/index.js",
         "${NOAH_DATA_PATH}"
       ],
       "disabled": false,
@@ -57,14 +57,13 @@
         "list_allowed_directories"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/filesystem"
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/filesystem/dist"
       }
     },
     "memory": {
-      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "command": "${NOAH_NODE_PATH}",
       "args": [
-        "-m",
-        "mcp_server_memory"
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/memory/dist/index.js"
       ],
       "disabled": false,
       "alwaysAllow": [
@@ -79,14 +78,14 @@
         "open_nodes"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/memory"
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/memory/dist"
       }
     },
     "git": {
       "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
       "args": [
         "-m",
-        "mcp_server_git",
+        "mcp_server_git.__main__",
         "--repository",
         "${GIT_PATH_REPO}"
       ],
@@ -105,16 +104,15 @@
         "git_show"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/git",
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/git/src",
         "GIT_AUTHOR_NAME": "${GIT_CONFIG_AUTHOR}",
         "GIT_AUTHOR_EMAIL": "${GIT_CONFIG_EMAIL}"
       }
     },
     "github": {
-      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "command": "${NOAH_NODE_PATH}",
       "args": [
-        "-m",
-        "mcp_server_github"
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/github/dist/index.js"
       ],
       "disabled": false,
       "alwaysAllow": [
@@ -137,17 +135,16 @@
         "get_issue"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/github",
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/github/dist",
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_AUTH_TOKEN}",
         "GITHUB_DEFAULT_OWNER": "${GITHUB_CONFIG_OWNER}",
         "GITHUB_DEFAULT_REPO": "${GITHUB_CONFIG_REPO}"
       }
     },
     "gitlab": {
-      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "command": "${NOAH_NODE_PATH}",
       "args": [
-        "-m",
-        "mcp_server_gitlab"
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/gitlab/dist/index.js"
       ],
       "disabled": false,
       "alwaysAllow": [
@@ -162,7 +159,7 @@
         "create_branch"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/gitlab",
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/gitlab/dist",
         "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_AUTH_TOKEN}",
         "GITLAB_API_URL": "${GITLAB_CONFIG_URL}/api/v4",
         "GITLAB_DEFAULT_PROJECT": "${GITLAB_CONFIG_PROJECT}",
@@ -170,10 +167,9 @@
       }
     },
     "puppeteer": {
-      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "command": "${NOAH_NODE_PATH}",
       "args": [
-        "-m",
-        "mcp_server_puppeteer"
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/puppeteer/dist/index.js"
       ],
       "disabled": false,
       "alwaysAllow": [
@@ -186,7 +182,7 @@
         "puppeteer_evaluate"
       ],
       "env": {
-        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/puppeteer",
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/puppeteer/dist",
         "PUPPETEER_VIEWPORT_WIDTH": "${PUPPETEER_CONFIG_VIEWPORT_WIDTH}",
         "PUPPETEER_VIEWPORT_HEIGHT": "${PUPPETEER_CONFIG_VIEWPORT_HEIGHT}",
         "PUPPETEER_USER_AGENT": "${PUPPETEER_CONFIG_USER_AGENT}",
