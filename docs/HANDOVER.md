@@ -3,7 +3,7 @@
 ## 基本情報
 
 - タスク完了日: 2025/01/13
-- 前回の引継ぎ文書: docs/archive/HANDOVER_202501131502.md
+- 前回の引継ぎ文書: docs/archive/HANDOVER_202501131524.md
 - 関連Issue/PR: なし
 
 ## 実装状況
@@ -12,62 +12,72 @@
 
 ```
 MCP/
-├── config/              # 設定管理
-│   ├── env.json        # 更新: 環境変数の標準化
-│   └── development.json # 更新: 標準MCPサーバー設定
-└── custom-mcp/         # 削除: カスタム実装を標準サーバーに移行
+├── config/
+│   ├── env.json        # 更新: 環境変数の追加（Git, GitHub, GitLab, Puppeteer）
+│   └── development.json # 更新: フェーズ2のMCPサーバー設定追加
+└── data/
+    └── puppeteer/      # 新規: スクリーンショット保存用ディレクトリ
 ```
 
 ### 2. 実装内容
 
 #### 完了した項目
 
-- [x] MCPサーバー管理の改善
-  - 全てのサーバーを標準MCPサーバーに統一
-  - カスタム実装（SQLite, PostgreSQL）を削除
-  - 環境変数の命名規則を標準化
-  - 設定ファイルの構造を統一
+- [x] フェーズ1のMCPサーバー設定の見直し
+  - SQLite: データベースパスとツールの設定を修正
+  - PostgreSQL: 接続URLの形式とqueryツールの設定を修正
+  - Filesystem: アクセス可能なディレクトリとツールの設定を修正
+  - Memory: 知識グラフ操作ツールの設定を修正
 
-- [x] 環境変数の標準化
-  - 新しい命名規則の導入（[SERVER]_[CATEGORY]_[NAME]）
-  - PostgreSQL変数を POSTGRES_DB_* 形式に変更
-  - 不要な変数（NOAH_PYTHON_PATH）を削除
-  - SQLite用のパス変数を追加
+- [x] フェーズ2のMCPサーバー設定の追加
+  - Git: リポジトリ操作のための基本設定
+    - リポジトリパスの設定
+    - 作者情報の環境変数設定
+    - 基本的なGit操作ツールの許可
+  - GitHub: GitHub API連携のための設定
+    - Personal Access Tokenの設定
+    - リポジトリ情報の環境変数設定
+    - GitHub API操作ツールの許可
+  - GitLab: GitLab API連携のための設定
+    - Personal Access Tokenの設定
+    - API URLとプロジェクト情報の環境変数設定
+    - GitLab API操作ツールの許可
+  - Puppeteer: ブラウザ自動化のための設定
+    - ビューポート設定の環境変数追加
+    - スクリーンショット保存パスの設定
+    - ブラウザ操作ツールの許可
 
 #### 保留・未完了の項目
 
-- [ ] フェーズ2-4のMCPサーバー移行
-  - 開発支援ツール（Git, GitHub, GitLab, Puppeteer）
-  - 外部サービス連携（Google Drive, Maps, Slack, Sentry）
-  - 特殊機能（EverArt, Sequential Thinking, Time, Everything）
+- [ ] フェーズ3のMCPサーバー移行
+  - Google Drive: ファイルアクセス
+  - Google Maps: 位置情報サービス
+  - Slack: チャネル管理
+  - Sentry: エラー追跡
 
 ### 3. 設定・認証情報の変更
 
-- 環境変数の標準化（MCP/config/env.json）
-  - POSTGRES_DB_* 形式の導入
-  - SQLITE_DB_PATH の追加
-  - 不要な変数の削除
-
-- MCPサーバー設定の更新（MCP/config/development.json）
-  - 全サーバーを標準MCPサーバーに統一
-  - 許可ツールの明示的な設定
-  - 設定構造の統一化
+- 環境変数の追加（MCP/config/env.json）
+  - Git関連: GIT_PATH_REPO, GIT_CONFIG_AUTHOR, GIT_CONFIG_EMAIL
+  - GitHub関連: GITHUB_AUTH_TOKEN, GITHUB_CONFIG_OWNER, GITHUB_CONFIG_REPO
+  - GitLab関連: GITLAB_AUTH_TOKEN, GITLAB_CONFIG_URL, GITLAB_CONFIG_PROJECT, GITLAB_CONFIG_NAMESPACE
+  - Puppeteer関連: PUPPETEER_CONFIG_* 環境変数群
 
 ## 次のステップ
 
 ### 1. 優先度高
 
-- [ ] フェーズ2のMCPサーバー移行開始
-  - Git
-  - GitHub
-  - GitLab
-  - Puppeteer
+- [ ] フェーズ3のMCPサーバー移行開始
+  - Google Drive
+  - Google Maps
+  - Slack
+  - Sentry
+- [ ] 各サーバーの動作確認とテスト
 - [ ] 本番環境用設定ファイルの作成
-- [ ] 監視体制の確立
 
 ### 2. 中期的な課題
 
-- [ ] フェーズ3-4のMCPサーバー移行
+- [ ] フェーズ4のMCPサーバー移行準備
 - [ ] CI/CDパイプラインの整備
 - [ ] 監視・ロギング機能の実装
 
@@ -81,24 +91,20 @@ MCP/
 
 ### 1. 新規追加された運用ルール
 
-- 標準MCPサーバーを優先的に使用すること
-- サーバー実装前に必ずREADMEを確認すること
+- 各サーバーのREADMEを必ず確認してから設定を変更すること
+- 環境変数は命名規則（[SERVER]_[CATEGORY]_[NAME]）に従うこと
 - 設定変更時は必ずgenerate-config.ps1を実行すること
-- 環境変数は必ずenv.jsonで管理すること
-- 環境変数は新しい命名規則に従うこと
 
 ### 2. 既知の問題
 
-- PostgreSQLサーバーは読み取り専用アクセスのみ
-- Filesystemサーバーは指定ディレクトリ内でのみ操作可能
-- 一部の設定パスが絶対パスのまま
+- GitHubとGitLabのトークンは定期的な更新が必要
+- Puppeteerのスクリーンショットパスは絶対パスで指定する必要あり
 
 ### 3. 監視が必要な項目
 
-- 各サーバーの動作状況
-- 環境変数の解決結果
-- アクセス権限の設定状態
-- メモリ使用状況
+- 各サーバーの接続状態
+- 認証トークンの有効期限
+- スクリーンショットディレクトリの容量
 
 ## 参考情報
 
@@ -106,7 +112,7 @@ MCP/
 
 - MCP/config/env.json: 環境変数定義（更新）
 - MCP/config/development.json: MCPサーバー設定（更新）
-- docs/MCP_MIGRATION_PLAN.md: 移行計画（更新）
+- docs/MCP_MIGRATION_PLAN.md: 移行計画（参照）
 
 ### 関連リンク
 
@@ -115,6 +121,5 @@ MCP/
 
 ### 備考
 
-- 標準MCPサーバーの活用により、カスタム実装を最小限に抑制
-- READMEベースの実装プロセスにより、設定の標準化を実現
-- 既存の機能は維持しながら、新しい管理方式への移行を計画的に実施
+- フェーズ2の実装は完了し、フェーズ3への移行準備が整いました
+- 各サーバーのREADMEに基づいて設定を行い、必要な機能を適切に有効化しています

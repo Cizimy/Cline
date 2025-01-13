@@ -1,56 +1,70 @@
 {
   "mcpServers": {
     "sqlite": {
-      "command": "npx",
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-sqlite",
+        "-m",
+        "mcp_server_sqlite",
+        "--db-path",
         "${SQLITE_DB_PATH}"
       ],
       "disabled": false,
       "alwaysAllow": [
-        "query",
-        "describe_table",
+        "read_query",
+        "write_query",
+        "create_table",
         "list_tables",
-        "create_table"
-      ]
+        "describe_table",
+        "append_insight"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sqlite"
+      }
     },
     "postgres": {
-      "command": "npx",
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
+        "-m",
+        "mcp_server_postgres",
         "postgresql://${POSTGRES_DB_USER}:${POSTGRES_DB_PASSWORD}@${POSTGRES_DB_HOST}:${POSTGRES_DB_PORT}/${POSTGRES_DB_NAME}"
       ],
       "disabled": false,
       "alwaysAllow": [
         "query"
-      ]
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/postgres"
+      }
     },
     "filesystem": {
-      "command": "npx",
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
+        "-m",
+        "mcp_server_filesystem",
         "${NOAH_DATA_PATH}"
       ],
       "disabled": false,
       "alwaysAllow": [
         "read_file",
+        "read_multiple_files",
         "write_file",
+        "edit_file",
         "create_directory",
         "list_directory",
         "move_file",
         "search_files",
         "get_file_info",
         "list_allowed_directories"
-      ]
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/filesystem"
+      }
     },
     "memory": {
-      "command": "npx",
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
+        "-m",
+        "mcp_server_memory"
       ],
       "disabled": false,
       "alwaysAllow": [
@@ -63,7 +77,121 @@
         "read_graph",
         "search_nodes",
         "open_nodes"
-      ]
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/memory"
+      }
+    },
+    "git": {
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mcp_server_git",
+        "--repository",
+        "${GIT_PATH_REPO}"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "git_status",
+        "git_diff_unstaged",
+        "git_diff_staged",
+        "git_diff",
+        "git_commit",
+        "git_add",
+        "git_reset",
+        "git_log",
+        "git_create_branch",
+        "git_checkout",
+        "git_show"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/git",
+        "GIT_AUTHOR_NAME": "${GIT_CONFIG_AUTHOR}",
+        "GIT_AUTHOR_EMAIL": "${GIT_CONFIG_EMAIL}"
+      }
+    },
+    "github": {
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mcp_server_github"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "create_or_update_file",
+        "push_files",
+        "search_repositories",
+        "create_repository",
+        "get_file_contents",
+        "create_issue",
+        "create_pull_request",
+        "fork_repository",
+        "create_branch",
+        "list_issues",
+        "update_issue",
+        "add_issue_comment",
+        "search_code",
+        "search_issues",
+        "search_users",
+        "list_commits",
+        "get_issue"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/github",
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_AUTH_TOKEN}",
+        "GITHUB_DEFAULT_OWNER": "${GITHUB_CONFIG_OWNER}",
+        "GITHUB_DEFAULT_REPO": "${GITHUB_CONFIG_REPO}"
+      }
+    },
+    "gitlab": {
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mcp_server_gitlab"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "create_or_update_file",
+        "push_files",
+        "search_repositories",
+        "create_repository",
+        "get_file_contents",
+        "create_issue",
+        "create_merge_request",
+        "fork_repository",
+        "create_branch"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/gitlab",
+        "GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_AUTH_TOKEN}",
+        "GITLAB_API_URL": "${GITLAB_CONFIG_URL}/api/v4",
+        "GITLAB_DEFAULT_PROJECT": "${GITLAB_CONFIG_PROJECT}",
+        "GITLAB_DEFAULT_NAMESPACE": "${GITLAB_CONFIG_NAMESPACE}"
+      }
+    },
+    "puppeteer": {
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mcp_server_puppeteer"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "puppeteer_navigate",
+        "puppeteer_screenshot",
+        "puppeteer_click",
+        "puppeteer_hover",
+        "puppeteer_fill",
+        "puppeteer_select",
+        "puppeteer_evaluate"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/puppeteer",
+        "PUPPETEER_VIEWPORT_WIDTH": "${PUPPETEER_CONFIG_VIEWPORT_WIDTH}",
+        "PUPPETEER_VIEWPORT_HEIGHT": "${PUPPETEER_CONFIG_VIEWPORT_HEIGHT}",
+        "PUPPETEER_USER_AGENT": "${PUPPETEER_CONFIG_USER_AGENT}",
+        "PUPPETEER_SCREENSHOTS_PATH": "${PUPPETEER_PATH_SCREENSHOTS}"
+      }
     }
   }
 }
