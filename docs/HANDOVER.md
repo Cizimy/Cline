@@ -11,95 +11,109 @@
 ### 1. リポジトリ構造の変更
 
 ```
-リポジトリ名の変更に伴う変更：
-Cline/ → Noah/
+MCP/
+├── config/              # 新規追加: MCPサーバー設定管理
+│   ├── env.json        # 環境変数定義
+│   ├── base.json       # 基本設定テンプレート
+│   ├── development.json # 開発環境設定
+│   └── README.md       # 設定管理ドキュメント
+└── custom-mcp/
+    └── sqlite/
+        ├── Dockerfile  # 新規追加: Docker化準備
+        └── docker-build.ps1 # 新規追加: ビルドスクリプト
 ```
 
 ### 2. 実装内容
 
 #### 完了した項目
 
-- [x] リポジトリ名の変更
-  - GitHubリポジトリ名をClineからNoahに変更
-  - ローカルディレクトリ名も同様に変更
-  - 関連ドキュメントの更新（README.md, PROJECT_CONTEXT.md）
-
-- [x] 環境変数の更新
-  - CLINE_HOME → NOAH_HOME
-  - CLINE_CONFIG_PATH → NOAH_CONFIG_PATH
-  - 新しい環境変数の設定を完了
-
-- [x] MCPサーバーの再構築
-  - Node.jsサーバーのビルド実行
-  - Pythonモジュールの再インストール（fetch, git, sentry, sqlite, time）
-  - MCPサーバー設定ファイルのパス更新
+- [x] MCPサーバー設定管理システムの改善
+  - 環境変数ベースのパス解決システムの実装
+  - 階層的な設定ファイル構造の導入
+  - 設定生成スクリプトの作成
+- [x] SQLiteサーバーの将来的なDocker化の準備
+  - Dockerfileの作成
+  - ビルドスクリプトの作成
+- [x] 設定ファイルの自動生成機能の実装
+  - 環境変数の自動解決
+  - パスの標準化
+  - 出力ディレクトリの自動作成
 
 #### 保留・未完了の項目
 
-- [ ] CI/CD設定の確認と更新
-  - GitHub Actionsの設定確認が必要
-  - 環境変数の参照先の更新が必要
+- [ ] Docker環境の構築と実際のコンテナ化
+  - Dockerのインストールが必要
+  - 実環境でのテストが未実施
+- [ ] 他のMCPサーバーの新システムへの移行
+  - 段階的な移行が必要
+  - 各サーバーの特性に応じた設定の調整
 
 ### 3. 設定・認証情報の変更
 
-- 環境変数の変更
-  - NOAH_HOME: C:\Users\Kenichi\Documents\Noah
-  - NOAH_CONFIG_PATH: C:\Users\Kenichi\Documents\Noah\extensions\configs
-
-- MCPサーバー設定ファイルの更新
-  - cline_mcp_settings.jsonのパスを更新
-  - すべてのサーバーパスをNoahディレクトリに変更
+- 環境変数の整理と標準化
+  - NOAH_HOME
+  - NOAH_CONFIG_PATH
+  - NOAH_DATA_PATH
+  - NOAH_PYTHON_PATH
+  - NOAH_NODE_PATH
 
 ## 次のステップ
 
 ### 1. 優先度高
 
-- [ ] CI/CD設定の更新
-- [ ] 既存のクローンやフォークを持つユーザーへの通知
-- [ ] MCPサーバーの動作確認
+- [ ] Docker環境のセットアップ
+- [ ] 新しい設定システムの動作確認
+- [ ] 他のMCPサーバーの移行計画の作成
 
 ### 2. 中期的な課題
 
-- [ ] リポジトリ名変更に伴う参照の包括的な確認
-- [ ] ドキュメントの更新漏れがないかの確認
+- [ ] 他のMCPサーバーの段階的な移行
+- [ ] 本番環境用設定（production.json）の作成
+- [ ] 監視・ロギング機能の実装検討
 
 ### 3. 長期的な検討事項
 
-- [ ] プロジェクト名変更に伴うブランディングの見直し
-- [ ] 新しい名前に合わせた機能の拡張検討
+- [ ] 完全なコンテナ化への移行
+- [ ] マイクロサービスアーキテクチャの検討
+- [ ] CI/CDパイプラインの整備
 
 ## 運用上の注意点
 
 ### 1. 新規追加された運用ルール
 
-- 環境変数の参照は新しい名前（NOAH_*）を使用すること
-- MCPサーバーのパス設定は新しいディレクトリ構造に従うこと
+- 設定変更時は必ずgenerate-config.ps1を実行すること
+- 環境変数は必ずenv.jsonで管理すること
+- パスの指定は環境変数を使用すること
 
 ### 2. 既知の問題
 
-- リポジトリ名変更により、既存のクローンやフォークの更新が必要
-- 一部のMCPサーバーで再ビルドが必要な場合がある
+- Docker環境が未整備
+- 一部の設定パスが絶対パスのまま
+- 設定生成時のパーミッション問題の可能性
 
 ### 3. 監視が必要な項目
 
-- MCPサーバーの動作状況
-- 環境変数の正しい設定
-- CI/CDパイプラインの動作
+- 設定ファイルの生成状況
+- 環境変数の解決結果
+- SQLiteサーバーの動作状況
 
 ## 参考情報
 
 ### 重要なファイル
 
-- README.md: プロジェクト名とパスの更新
-- docs/PROJECT_CONTEXT.md: プロジェクト名と環境変数名の更新
-- cline_mcp_settings.json: MCPサーバー設定の更新
+- MCP/config/env.json: 環境変数定義
+- MCP/config/base.json: 基本設定テンプレート
+- MCP/config/development.json: 開発環境設定
+- MCP/config/generate-config.ps1: 設定生成スクリプト
+- MCP/custom-mcp/sqlite/Dockerfile: SQLiteサーバーのDocker設定
 
 ### 関連リンク
 
-- 新しいリポジトリURL: https://github.com/Cizimy/Noah
 - MCPフレームワーク仕様書: docs/references/mcp_llm_reference.txt
+- Docker公式ドキュメント: https://docs.docker.com/
 
 ### 備考
 
-- リポジトリ名の変更は、プロジェクトの方向性をより適切に反映するために実施
-- 既存の機能や設定はすべて維持しながら、名前の変更のみを実施
+- 設定管理システムの改善により、より効率的なMCPサーバーの管理が可能に
+- Docker化は段階的に進めることを推奨
+- 既存の機能は維持しながら、新しい管理方式への移行を計画的に実施

@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "defaults": {
+      "disabled": false,
+      "alwaysAllow": [],
+      "env": {}
+    },
+    "pythonDefaults": {
+      "command": "${NOAH_PYTHON_PATH}",
+      "disabled": false,
+      "alwaysAllow": [],
+      "env": {
+        "PYTHONPATH": "${NOAH_HOME}/MCP/servers/src/${SERVER_NAME}"
+      }
+    },
+    "nodeDefaults": {
+      "command": "${NOAH_NODE_PATH}",
+      "disabled": false,
+      "alwaysAllow": [],
+      "env": {}
+    }
+  }
+}

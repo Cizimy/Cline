@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "${NOAH_PYTHON_PATH}",
+      "args": [
+        "-m",
+        "mcp_server_sqlite"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "append_insight",
+        "describe_table",
+        "list_tables",
+        "create_table",
+        "write_query",
+        "read_query"
+      ],
+      "env": {
+        "PYTHONPATH": "${NOAH_HOME}/MCP/custom-mcp/sqlite/src",
+        "SQLITE_DB_PATH": "${NOAH_DATA_PATH}/sqlite/db.sqlite"
+      }
+    }
+  }
+}
