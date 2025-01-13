@@ -1,13 +1,13 @@
-# Cline Custom Extensions
+# Noah Custom Extensions
 
-Clineのカスタム拡張機能を管理するリポジトリです。
+Noahのカスタム拡張機能を管理するリポジトリです。
 
 ## セットアップ
 
 ```bash
 # リポジトリのクローン
-git clone https://github.com/Cizimy/Cline.git
-cd Cline
+git clone https://github.com/Cizimy/Noah.git
+cd Noah
 
 # 依存関係のインストール
 npm install
@@ -84,7 +84,7 @@ npm test -- --coverage
 - MCPサーバーとの連携方法
 - トラブルシューティングガイド
 
-このドキュメントは、特にClineがタスクを効率的に実行するために必要な基本情報を提供することを目的としています。
+このドキュメントは、特にNoahがタスクを効率的に実行するために必要な基本情報を提供することを目的としています。
 
 ### MCPフレームワーク参照
 
@@ -161,7 +161,7 @@ npm test -- --coverage
 ## プロジェクト構造
 
 ```
-Cline/
+Noah/
 ├── package.json           # プロジェクトのルート設定
 ├── .gitignore            # Git除外設定
 ├── .gitmodules           # サブモジュール設定
