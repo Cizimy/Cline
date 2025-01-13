@@ -3,7 +3,7 @@
 ## 基本情報
 
 - タスク完了日: 2025/01/13
-- 前回の引継ぎ文書: docs/archive/HANDOVER_202501131617.md
+- 前回の引継ぎ文書: docs/archive/HANDOVER_202501131623.md
 - 関連Issue/PR: なし
 
 ## 実装状況
@@ -13,75 +13,63 @@
 ```
 MCP/
 ├── config/
-│   ├── env.json        # 更新: 実装言語に応じた環境変数の設定
-│   └── development.json # 更新: TypeScript/Python実装の設定分離
-└── servers/
-    ├── sqlite/         # Python実装
-    ├── postgres/       # TypeScript実装
-    ├── filesystem/     # TypeScript実装
-    ├── memory/         # TypeScript実装
-    ├── git/           # Python実装
-    ├── github/        # TypeScript実装
-    ├── gitlab/        # TypeScript実装
-    └── puppeteer/     # TypeScript実装
+│   ├── env.json        # 更新: 外部サービス用の環境変数を追加
+│   ├── development.json # 更新: 新規MCPサーバーの設定を追加
+│   └── gdrive/         # 新規: Google Drive認証情報
 ```
 
 ### 2. 実装内容
 
 #### 完了した項目
 
-- [x] MCPサーバーの実装言語整理
-  - Python実装（sqlite, git）
-    * PYTHONPATHを`src`ディレクトリに設定
-    * モジュール名に`.__main__`を追加
-    * 仮想環境の使用設定
-  - TypeScript実装（その他のサーバー）
-    * NODE_PATHを`dist`ディレクトリに設定
-    * ビルド済みJSファイルの使用設定
-    * 依存関係の管理設定
+- [x] フェーズ3のMCPサーバー移行
+  - Google Drive: ファイルアクセス
+    * OAuth2認証の設定
+    * 認証情報の保存と管理
+    * 検索機能の実装
+  - Google Maps: 位置情報サービス
+    * APIキーの設定
+    * 7つの位置情報サービス機能の実装
+  - Slack: チャネル管理
+    * Botトークンの設定
+    * チーム設定の追加
+    * 8つのチャネル管理機能の実装
+  - Sentry: エラー追跡
+    * 認証トークンの設定
+    * エラー情報取得機能の実装
 
-- [x] 設定ファイルの標準化
-  - development.jsonの更新
-    * 実装言語別の設定分離
-    * 環境変数の標準化
-    * 許可ツールの整理
-  - cline_mcp_settings.jsonの更新
-    * 実行コマンドの適切な設定
-    * パス設定の修正
-    * 環境変数の統一
+- [x] 環境変数の標準化
+  - 命名規則の適用（[SERVER]_[CATEGORY]_[NAME]）
+  - 認証情報の適切な管理
+  - パス設定の整理
 
 #### 保留・未完了の項目
 
-- [ ] フェーズ3のMCPサーバー移行
-  - Google Drive: ファイルアクセス
-  - Google Maps: 位置情報サービス
-  - Slack: チャネル管理
-  - Sentry: エラー追跡
+- [ ] フェーズ4のMCPサーバー移行準備
 
 ### 3. 設定・認証情報の変更
 
-- 環境変数の標準化
-  - Python実装用: PYTHONPATH, モジュールパス
-  - TypeScript実装用: NODE_PATH, distディレクトリ
-  - 共通設定: サーバー固有の認証情報と設定
+- 環境変数の追加
+  - GDRIVE_AUTH_PATH: OAuth認証情報のパス
+  - GDRIVE_CREDENTIALS_PATH: 認証済みクレデンシャルのパス
+  - GOOGLE_MAPS_API_KEY: Google Maps APIキー
+  - SLACK_AUTH_TOKEN: Slackボットトークン
+  - SLACK_CONFIG_TEAM_ID: Slackチームの識別子
+  - SENTRY_AUTH_TOKEN: Sentry認証トークン
 
 ## 次のステップ
 
 ### 1. 優先度高
 
-- [ ] フェーズ3のMCPサーバー移行開始
-  - Google Drive
-  - Google Maps
-  - Slack
-  - Sentry
+- [ ] フェーズ4のMCPサーバー移行計画の策定
 - [ ] 各サーバーの動作確認とテスト
 - [ ] 本番環境用設定ファイルの作成
 
 ### 2. 中期的な課題
 
-- [ ] フェーズ4のMCPサーバー移行準備
 - [ ] CI/CDパイプラインの整備
 - [ ] 監視・ロギング機能の実装
+- [ ] サーバー間連携機能の強化
 
 ### 3. 長期的な検討事項
 
@@ -93,23 +81,24 @@ MCP/
 
 ### 1. 新規追加された運用ルール
 
-- 実装言語に応じた適切な設定を使用すること
-  * Python: PYTHONPATHとモジュール名の設定
-  * TypeScript: NODE_PATHとdistディレクトリの設定
-- 設定変更時は必ずgenerate-config.ps1を実行すること
-- 環境変数は命名規則（[SERVER]_[CATEGORY]_[NAME]）に従うこと
+- Google Drive認証の更新手順
+  * 認証情報の期限切れ時は`auth`引数で再認証
+  * 認証情報は指定されたパスに保存
+- 環境変数の命名規則の厳守
+- 設定変更時のgenerate-config.ps1実行の徹底
 
 ### 2. 既知の問題
 
+- Google Drive認証の有効期限に注意が必要
+- 環境変数の解決順序に依存関係あり
 - TypeScriptサーバーはビルドが必要
-- Python実装はモジュールパスの設定が重要
-- 環境変数の解決順序に注意が必要
 
 ### 3. 監視が必要な項目
 
-- 各サーバーの接続状態
-- ビルド成果物の整合性
+- 各サーバーの認証状態
+- APIキーの有効期限
 - 環境変数の解決状況
+- ビルド成果物の整合性
 
 ## 参考情報
 
@@ -117,6 +106,7 @@ MCP/
 
 - MCP/config/env.json: 環境変数定義（更新）
 - MCP/config/development.json: MCPサーバー設定（更新）
+- MCP/config/gdrive/oauth.keys.json: Google Drive認証情報
 - docs/MCP_MIGRATION_PLAN.md: 移行計画（更新）
 
 ### 関連リンク
@@ -126,5 +116,5 @@ MCP/
 
 ### 備考
 
-- フェーズ1,2の実装が完了し、フェーズ3への移行準備が整いました
-- 実装言語による設定の違いを明確化し、管理を容易にしました
+- フェーズ3の実装が完了し、フェーズ4への移行準備が整いました
+- 外部サービスとの連携基盤が確立され、今後の拡張が容易になりました

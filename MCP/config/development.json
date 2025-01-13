@@ -188,6 +188,79 @@
         "PUPPETEER_USER_AGENT": "${PUPPETEER_CONFIG_USER_AGENT}",
         "PUPPETEER_SCREENSHOTS_PATH": "${PUPPETEER_PATH_SCREENSHOTS}"
       }
+    },
+    "gdrive": {
+      "command": "${NOAH_NODE_PATH}",
+      "args": [
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/gdrive/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "search"
+      ],
+      "env": {
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/gdrive/dist",
+        "GDRIVE_OAUTH_PATH": "${GDRIVE_AUTH_PATH}",
+        "GDRIVE_CREDENTIALS_PATH": "${GDRIVE_CREDENTIALS_PATH}"
+      }
+    },
+    "google-maps": {
+      "command": "${NOAH_NODE_PATH}",
+      "args": [
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/google-maps/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "maps_geocode",
+        "maps_reverse_geocode",
+        "maps_search_places",
+        "maps_place_details",
+        "maps_distance_matrix",
+        "maps_elevation",
+        "maps_directions"
+      ],
+      "env": {
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/google-maps/dist",
+        "GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}"
+      }
+    },
+    "slack": {
+      "command": "${NOAH_NODE_PATH}",
+      "args": [
+        "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/slack/dist/index.js"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "slack_list_channels",
+        "slack_post_message",
+        "slack_reply_to_thread",
+        "slack_add_reaction",
+        "slack_get_channel_history",
+        "slack_get_thread_replies",
+        "slack_get_users",
+        "slack_get_user_profile"
+      ],
+      "env": {
+        "NODE_PATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/slack/dist",
+        "SLACK_BOT_TOKEN": "${SLACK_AUTH_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_CONFIG_TEAM_ID}"
+      }
+    },
+    "sentry": {
+      "command": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mcp_server_sentry.__main__",
+        "--auth-token",
+        "${SENTRY_AUTH_TOKEN}"
+      ],
+      "disabled": false,
+      "alwaysAllow": [
+        "get_sentry_issue"
+      ],
+      "env": {
+        "PYTHONPATH": "C:/Users/Kenichi/Documents/Noah/MCP/servers/src/sentry/src"
+      }
     }
   }
 }
